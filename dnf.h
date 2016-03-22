@@ -17,6 +17,41 @@
 *
 * Comments, questions and criticisms can be sent to: sean@conman.org
 *
+* =======================================================================
+*
+* DNF---the floating point conversion routines.  These routines allow you to
+* safely convert halfs (16b IEEE-754), singles (32b IEEE-754) or doubles
+* (64b IEEE-764) values to halfs, singles or doubles.  This is done in two
+* steps, a conversion *from* one of the formats, and a conversion *to* one
+* of the formats.
+*
+* 	dnf_fromhalf()
+*		Convert from IEEE-754 16b format to internal format used
+*		for conversion.
+*
+*	dnf_fromsingle()
+*		Convert from IEEE-754 32b format to internal format used
+*		for conversion.
+*
+*	dnf_fromdouble()
+*		Convert from IEEE-754 62b format to internal format used
+*		for conversion.
+*
+*	dnf_tohalf()
+*		Convert internal format to IEEE-754 16b format.  
+*
+*	dnf_tosingle()
+*		Convert internal format to IEEE-754 32b format.
+*
+*	dnf_todouble()
+*		Convert internal format to IEEE_754 64b format.
+*
+* All routines will return an error code:
+*
+*	0	conversion succeeded
+*	EDOM	fraction contains too many bits to safely convert
+*	ERANGE	exponent exceeds allowable range of format
+*
 *************************************************************************/
 
 #ifndef I_C49BBFEF_CB06_5427_B636_83754812AC51
