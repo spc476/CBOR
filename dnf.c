@@ -185,7 +185,7 @@ int dnf_tohalf(unsigned short int *const ph,const dnf__s v)
     assert(!v.inf);
     
     if ((v.frac & 0x003FFFFFFFFFFFFFuLL) != 0uLL)
-      return ERANGE;
+      return EDOM;
     
     *ph  = v.sign ? 0xFC00 : 0x7C00;
     *ph |= (unsigned short)((v.frac >> 52) & 0x03FFuLL);
@@ -195,7 +195,7 @@ int dnf_tohalf(unsigned short int *const ph,const dnf__s v)
   if ((v.exp < -14) || (v.exp > 15))
     return ERANGE;
   if ((v.frac & 0x003FFFFFFFFFFFFFuLL) != 0uLL)
-    return ERANGE;
+    return EDOM;
   
   if ((v.exp == -14) && (v.frac < 0x8000000000000000uLL))
     *ph = (unsigned short)((v.frac >> 52) & 0x03FFuLL);
@@ -239,7 +239,7 @@ int dnf_tosingle(float *const pf,const dnf__s v)
     assert(!v.inf);
     
     if ((v.frac & 0x000003FFFFFFFFFFuLL) != 0uLL)
-      return ERANGE;
+      return EDOM;
     
     f.i  = v.sign ? 0xFF800000uL : 0x7F800000uL;
     f.i |= (uint32_t)((v.frac >> 40) & 0x007FFFFFuL);
@@ -250,7 +250,7 @@ int dnf_tosingle(float *const pf,const dnf__s v)
   if ((v.exp < -126) || (v.exp > 127))
     return ERANGE;
   if ((v.frac & 0x000001FFFFFFFFFFuLL) != 0uLL)
-    return ERANGE;
+    return EDOM;
   
   if ((v.exp == -126) && (v.frac < 0x8000000000000000uLL))
     f.i = (uint32_t)(v.frac >> 42) &  0x007FFFFFuL;
@@ -295,7 +295,7 @@ int dnf_todouble(double *const pd,const dnf__s v)
     assert(!v.inf);
     
     if ((v.frac & 0x0000000000000FFFuLL) != 0uLL)
-      return ERANGE;
+      return EDOM;
     
     d.i  = v.sign ? 0xFFF0000000000000uLL : 0x7FF0000000000000uLL;
     d.i |= (uint64_t)((v.frac >> 12) & 0x000FFFFFFFFFFFFFuLL);
@@ -306,7 +306,7 @@ int dnf_todouble(double *const pd,const dnf__s v)
   if ((v.exp < -1022) || (v.exp > 1023))
     return ERANGE;
   if ((v.frac & 0x00000000000007FFuLL) != 0uLL)
-    return ERANGE;
+    return EDOM;
   
   if ((v.exp == -1022) && (v.frac < 0x8000000000000000uLL))
     d.i = (uint64_t)(v.frac >> 12) & 0x000FFFFFFFFFFFFFuLL;
