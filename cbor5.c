@@ -136,7 +136,7 @@ static int cbor5lua_unpackf(lua_State *L)
   else
   {
     lua_pushnil(L);
-    lua_pushinteger(L,EINVAL);
+    lua_pushinteger(L,EDOM);
     return 2;
   }
   
