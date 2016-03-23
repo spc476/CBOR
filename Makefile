@@ -19,12 +19,16 @@
 #
 ########################################################################
 
+.PHONY:	clean
+
+VERSION = $(shell git describe --tag)
+
 CC      = gcc -std=c99 -Wall -Wextra -pedantic
 CFLAGS  = -g
 LDFLAGS = -shared -fPIC
 LDLIBS  =
 
-override CFLAGS += -shared -fPIC
+override CFLAGS += -shared -fPIC -DVERSION='"$(VERSION)"'
 
 %.so :
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)

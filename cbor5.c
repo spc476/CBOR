@@ -325,6 +325,9 @@ int luaopen_cbor5(lua_State *L)
   luaL_newlib(L,cbor5_reg);
 #endif
 
+  lua_pushliteral(L,VERSION);
+  lua_setfield(L,-2,"_VERSION");
+
   return 1;
 }
 
