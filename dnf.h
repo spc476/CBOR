@@ -61,19 +61,17 @@
 
 typedef struct
 {
-  bool               inf;
-  bool               nan;
   bool               sign;
   int                exp;
   unsigned long long frac;
 } dnf__s;
 
-extern int dnf_fromhalf  (dnf__s *const,const unsigned short int);
-extern int dnf_fromsingle(dnf__s *const,const float);
-extern int dnf_fromdouble(dnf__s *const,const double);
+extern int dnf_fromhalf  (dnf__s *const,unsigned short int);
+extern int dnf_fromsingle(dnf__s *const,float);
+extern int dnf_fromdouble(dnf__s *const,double);
 
-extern int dnf_tohalf    (unsigned short int *const,const dnf__s);
-extern int dnf_tosingle  (float              *const,const dnf__s);
-extern int dnf_todouble  (double             *const,const dnf__s);
+extern int dnf_tohalf    (unsigned short int *const,dnf__s);
+extern int dnf_tosingle  (float              *const,dnf__s);
+extern int dnf_todouble  (double             *const,dnf__s);
 
 #endif
