@@ -101,15 +101,6 @@ local lpeg     = require "lpeg"
 local cbor5    = require "cbor5"
 
 if _VERSION == "Lua 5.1" then
-  function math.type(n)
-    if n == math.huge or n == -math.huge then
-      return 'float'
-    elseif math.floor(n) == n then
-      return 'integer'
-    else
-      return 'float'
-    end
-  end
   module "cbor"
 else
   _ENV = {}
