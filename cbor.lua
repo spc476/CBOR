@@ -164,7 +164,7 @@ end
 -- ***********************************************************************
 
 local SHAREDREFS
-local TAGS =
+local TAG =
 {
   -- -------------------------------
   -- Following defined in RFC-7049
@@ -543,8 +543,8 @@ local TYPES =
   
   function(packet,pos,info,value,conv)
     local value = cbor5.unpacki(value)
-    if TAGS[value] then
-      return TAGS[value](packet,pos,value,conv)
+    if TAG[value] then
+      return TAG[value](packet,pos,value,conv)
     else
       throw(pos,"TAG type %d not supported",value)
     end
