@@ -349,15 +349,15 @@ local EXT_TYPES =
   end,
   
   [25] = function(packet,pos,value)
-    return 'half',value,pos
+    return 'half',cbor5.unpackf(value),pos
   end,
   
   [26] = function(packet,pos,value)
-    return 'single',value,pos
+    return 'single',cbor5.unpackf(value),pos
   end,
   
   [27] = function(packet,pos,value)
-    return 'double',value,pos
+    return 'double',cbor5.unpackf(value),pos
   end,
   
   [31] = function(packet,pos,value)
