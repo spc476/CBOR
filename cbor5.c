@@ -104,17 +104,19 @@ static int cbor5lua_unpackf(lua_State *L)
   
   if (ts == 2)
   {
-    unsigned short s = (t[0] << 8) | t[1];
+    unsigned short s = ((unsigned short)((unsigned char)t[0]) << 8)
+                     | ((unsigned short)((unsigned char)t[1]) << 0)
+                     ;
     dnf_fromhalf(&v,s);
   }
   else if (ts == 4)
   {
     float__u f;
     
-    f.i = ((uint32_t)t[0] << 24)
-        | ((uint32_t)t[1] << 16)
-        | ((uint32_t)t[2] <<  8)
-        | ((uint32_t)t[3] <<  0)
+    f.i = ((uint32_t)((unsigned char)t[0]) << 24)
+        | ((uint32_t)((unsigned char)t[1]) << 16)
+        | ((uint32_t)((unsigned char)t[2]) <<  8)
+        | ((uint32_t)((unsigned char)t[3]) <<  0)
         ;
     dnf_fromsingle(&v,f.f);
   }
@@ -122,14 +124,14 @@ static int cbor5lua_unpackf(lua_State *L)
   {
     double__u d;
     
-    d.i = ((uint64_t)t[0] << 56)
-        | ((uint64_t)t[1] << 48)
-        | ((uint64_t)t[2] << 40)
-        | ((uint64_t)t[3] << 32)
-        | ((uint64_t)t[4] << 24)
-        | ((uint64_t)t[5] << 16)
-        | ((uint64_t)t[6] <<  8)
-        | ((uint64_t)t[7] <<  0)
+    d.i = ((uint64_t)((unsigned char)t[0]) << 56)
+        | ((uint64_t)((unsigned char)t[1]) << 48)
+        | ((uint64_t)((unsigned char)t[2]) << 40)
+        | ((uint64_t)((unsigned char)t[3]) << 32)
+        | ((uint64_t)((unsigned char)t[4]) << 24)
+        | ((uint64_t)((unsigned char)t[5]) << 16)
+        | ((uint64_t)((unsigned char)t[6]) <<  8)
+        | ((uint64_t)((unsigned char)t[7]) <<  0)
         ;
    dnf_fromdouble(&v,d.d);
   }
@@ -175,8 +177,8 @@ static int cbor5lua_packi(lua_State *L)
   {
     unsigned int i = n;
     result[0] = type | 25;
-    result[1] = (i >> 16);
-    result[2] = (i >>  0) & 255;
+    result[1] = (i >> 8);
+    result[2] = (i >> 0) & 255;
     len       = 3;
   }
   else if (n < 4294967296.0)
@@ -274,26 +276,26 @@ static int cbor5lua_unpacki(lua_State *L)
   unsigned long long  i;
   
   if (ts == 1)
-    i = (unsigned long long)t[0];
+    i = (unsigned long long)((unsigned char)t[0]);
   else if (ts == 2)
-    i = ((unsigned long long)t[0] << 16)
-      | ((unsigned long long)t[1])
+    i = ((unsigned long long)((unsigned char)t[0]) << 8)
+      | ((unsigned long long)((unsigned char)t[1]))
       ;
   else if (ts == 4)
-    i = ((unsigned long long)t[0] << 24)
-      | ((unsigned long long)t[1] << 16)
-      | ((unsigned long long)t[2] <<  8)
-      | ((unsigned long long)t[3] <<  0)
+    i = ((unsigned long long)((unsigned char)t[0]) << 24)
+      | ((unsigned long long)((unsigned char)t[1]) << 16)
+      | ((unsigned long long)((unsigned char)t[2]) <<  8)
+      | ((unsigned long long)((unsigned char)t[3]) <<  0)
       ;
   else
-    i = ((unsigned long long)t[0] << 56)
-      | ((unsigned long long)t[1] << 48)
-      | ((unsigned long long)t[2] << 40)
-      | ((unsigned long long)t[3] << 32)
-      | ((unsigned long long)t[4] << 24)
-      | ((unsigned long long)t[5] << 16)
-      | ((unsigned long long)t[6] <<  8)
-      | ((unsigned long long)t[7] <<  0)
+    i = ((unsigned long long)((unsigned char)t[0]) << 56)
+      | ((unsigned long long)((unsigned char)t[1]) << 48)
+      | ((unsigned long long)((unsigned char)t[2]) << 40)
+      | ((unsigned long long)((unsigned char)t[3]) << 32)
+      | ((unsigned long long)((unsigned char)t[4]) << 24)
+      | ((unsigned long long)((unsigned char)t[5]) << 16)
+      | ((unsigned long long)((unsigned char)t[6]) <<  8)
+      | ((unsigned long long)((unsigned char)t[7]) <<  0)
       ;
   
 #if LUA_VERSION_NUM == 503
