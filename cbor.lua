@@ -23,7 +23,7 @@ local dump = require "org.conman.table".dump
 --
 -- Module:	cbor
 --
--- Desc:	Encode and decodes CBOR data.
+-- Desc:	Decodes CBOR data.
 --
 -- Types:
 --		cbor (enum)
