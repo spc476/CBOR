@@ -85,6 +85,8 @@ static void dnfi_denormalize(dnf__s *const pv,int maxexp)
     pv->frac /= 2;
     pv->exp++;
   }
+  
+  assert(pv->frac != 0uLL); /* we should have at least one bit left */
 }
 
 /**************************************************************************
