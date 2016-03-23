@@ -59,10 +59,22 @@ local dump = require "org.conman.table".dump
 --			* _base64	base64 encoded data (TEXT)
 --			* _regex	regex (TEXT)
 --			* _mime		MIME encoded messsage (TEXT)
---			* _uuid		UUID value (BIN)
 --			* _magic_cbor	itself (no data, used to self-describe CBOR data)
+--			** more tagged types, extensions
+--			* _nthstring	shared string (not supported)
+--			* _perlobj	Perl serialized object (not supported)
+--			* _serialobj	Generic serialized object (not supported)
 --			* _shareable	sharable resource (ARRAY or MAP)
 --			* _sharedref	reference (UINT)
+--			* _rational	Rational number (not supported)
+--			* _uuid		UUID value (BIN)
+--			* _langstring	Language-tagged string (not supported)
+--			* _id		Identifier (not supported)
+--			* _stringref	string reference (not supported)
+--			* _bmime	Binary MIME message (not supported)
+--			* _decimalfractionexp (not supported)
+--			* _bigfloatexp	(not supported)
+--			* _indirection	Indirection (not supported)
 --			*** Lua CBOR library types
 --			* __error	error parsing (TEXT)
 --		data (any) decoded CBOR data
@@ -154,6 +166,10 @@ end
 local SHAREDREFS
 local TAGS =
 {
+  -- -------------------------------
+  -- Following defined in RFC-7049
+  -- -------------------------------
+  
   [0] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     if type == 'TEXT' then
@@ -232,43 +248,12 @@ local TAGS =
   [24] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     if type == 'BIN' then
-      return '_CBOR',value,pos
+      return '_cbor',value,pos
     else
-      throw(pos,"_CBOR: wanted BIN, got %s",type)
+      throw(pos,"_cbor: wanted BIN, got %s",type)
     end
   end,
-  
-  [28] = function(packet,pos,value,conv)
-    local type,value,pos = decode1(packet,pos,conv)
-    if type == 'ARRAY' then
-      local a = {}
-      table.insert(SHAREDREFS,a)
-      local v,pos = getarray(value,packet,pos,conv,a)
-      return '_shareable',v,pos
-    elseif type == 'MAP' then
-      local m = {}
-      table.insert(SHAREDREFS,m)
-      local v,pos = getmap(value,packet,pos,conv,m)
-      return '_shareable',v,pos
-    else
-      throw(pos,"_shareable: wanted ARRAY or MAP, got %s",type)
-    end
-  end,
-  
-  [29] = function(packet,pos)
-    local type,value,pos = decode1(packet,pos,conv)
-    if type == 'UINT' then
-      local t = SHAREDREFS[value + 1]
-      if not t then
-        throw(pos,"_sharedref: unexpected reference %d",value)
-      else
-        return "_sharedref",t,pos
-      end
-    else
-      throw(pos,"_sharedref: wanted UINT, got %s",type)
-    end
-  end,
-  
+
   [32] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     if type == 'TEXT' then
@@ -308,23 +293,103 @@ local TAGS =
   [36] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     if type == 'TEXT' then
-      return '_MIME',value,pos
+      return '_mime',value,pos
     else
-      throw(pos,"_MIME: wanted TEXT, got %s",type)
+      throw(pos,"_mime: wanted TEXT, got %s",type)
     end
+  end,
+  
+  [55799] = function(packet,pos)
+    return '_magic_cbor','cbor',pos
+  end,
+  
+  -- ----------------------------------------------------------
+  -- Following defined by IANA
+  -- http://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml
+  -- ----------------------------------------------------------
+  
+  [25] = function()
+    return '_nthstring',nil,pos
+  end,
+  
+  [26] = function()
+    return '_perlobj',nil,pos
+  end,
+  
+  [27] = function()
+    return '_serialobj',nil,pos
+  end,
+  
+  [28] = function(packet,pos,value,conv)
+    local type,value,pos = decode1(packet,pos,conv)
+    if type == 'ARRAY' then
+      local a = {}
+      table.insert(SHAREDREFS,a)
+      local v,pos = getarray(value,packet,pos,conv,a)
+      return '_shareable',v,pos
+    elseif type == 'MAP' then
+      local m = {}
+      table.insert(SHAREDREFS,m)
+      local v,pos = getmap(value,packet,pos,conv,m)
+      return '_shareable',v,pos
+    else
+      throw(pos,"_shareable: wanted ARRAY or MAP, got %s",type)
+    end
+  end,
+  
+  [29] = function(packet,pos)
+    local type,value,pos = decode1(packet,pos,conv)
+    if type == 'UINT' then
+      local t = SHAREDREFS[value + 1]
+      if not t then
+        throw(pos,"_sharedref: unexpected reference %d",value)
+      else
+        return "_sharedref",t,pos
+      end
+    else
+      throw(pos,"_sharedref: wanted UINT, got %s",type)
+    end
+  end,
+  
+  [30] = function()
+    return '_rational',nil,pos
   end,
   
   [37] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     if type == 'BIN' then
-      return '_UUID',value,pos
+      return '_uuid',value,pos
     else
-      throw(pos,"_UUID: wanted BIN, got %s",type)
+      throw(pos,"_uuid: wanted BIN, got %s",type)
     end
   end,
   
-  [55799] = function(packet,pos)
-    return '_MAGIC_CBOR','CBOR',pos
+  [38] = function()
+    return '_langstring',nil,pos
+  end,
+  
+  [39] = function()
+    return '_id',nil,pos
+  end,
+  
+  [256] = function()
+    return '_stringref',nil,pos
+  end,
+  
+  [257] = function()
+    return '_bmime',nil,pos
+  end,
+  
+  [264] = function()
+    return '_decimalfractionexp',nil,pos
+  end,
+  
+  [265] = function()
+    return '_bigfloatexp',nil,pos
+  end,
+  
+  [22098] = function()
+    return '_indirection',nil,pos
   end,
 }
 
