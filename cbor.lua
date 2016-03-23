@@ -86,18 +86,12 @@ local dump = require "org.conman.table".dump
 -- ********************************************************************
 
 local _VERSION = _VERSION
-local assert   = assert
 local error    = error
 local pcall    = pcall
-local type     = type
-local pairs    = pairs
-local load     = load
 
 local math     = require "math"
 local string   = require "string"
 local table    = require "table"
-local debug    = require "debug"
-local lpeg     = require "lpeg"
 local cbor5    = require "cbor5"
 
 if _VERSION == "Lua 5.1" then
@@ -210,7 +204,7 @@ TAG =
     local type,value,pos = decode1(packet,pos)
     if type ~= 'ARRAY' then throw(pos,"_decimalfraction: wanted ARRAY, got %s",type) end
     if value ~= 2 then throw(pos,"_decimalfraction: wanted ARRAY[2], got ARRAY[%s]",value) end
-    result = {}
+    local result = {}
     type,result.exp,pos = decode1(packet,pos)
     if not isinteger(type) then throw(pos,"_decimalfraction: wanted integer for exp, got %s",type) end
     type,result.mantissa,pos = decode1(packet,pos)
@@ -224,7 +218,7 @@ TAG =
     local type,value,pos = decode1(packet,pos)
     if type ~= 'ARRAY' then throw(pos,"_bigfloat: wanted ARRAY, got %s",type) end
     if value ~= 2 then throw(pos,"_bigfloat: watned ARRAY[2], got ARRAY[%s]",value) end
-    result = {}
+    local result = {}
     type,result.exp,pos = decode1(packet,pos)
     if not isnumber(type) then throw(pos,"_bigfloat: wanted number for exp, got %s",type) end
     type,result.mantissa,pos = decode1(packet,pos)
@@ -235,21 +229,21 @@ TAG =
   -- --------------------------------------------
   
   [21] = function(packet,pos)
-    local type,value,pos = decode1(packet,pos)
+    local _,value,pos = decode1(packet,pos)
     return '_tobase64url',value,pos
   end,
   
   -- --------------------------------------------
   
   [22] = function(packet,pos)
-    local type,value,pos = decode1(packet,pos)
+    local _,value,pos = decode1(packet,pos)
     return '_tobase64',value,pos
   end,
   
   -- --------------------------------------------
   
   [23] = function(packet,pos)
-    local type,value,pos = decode1(packet,pos)
+    local _,value,pos = decode1(packet,pos)
     return '_tobase16',value,pos
   end,
   
@@ -321,7 +315,7 @@ TAG =
   
   -- --------------------------------------------
   
-  [55799] = function(packet,pos)
+  [55799] = function(_,pos)
     return '_magic_cbor','cbor',pos
   end,
   
@@ -330,25 +324,25 @@ TAG =
   -- http://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml
   -- ----------------------------------------------------------
   
-  [25] = function()
+  [25] = function(_,pos)
     return '_nthstring',nil,pos
   end,
   
   -- --------------------------------------------
   
-  [26] = function()
+  [26] = function(_,pos)
     return '_perlobj',nil,pos
   end,
   
   -- --------------------------------------------
   
-  [27] = function()
+  [27] = function(_,pos)
     return '_serialobj',nil,pos
   end,
   
   -- --------------------------------------------
   
-  [28] = function(packet,pos,value,conv)
+  [28] = function(packet,pos,_,conv)
     local type,value,pos = decode1(packet,pos,conv)
     if type == 'ARRAY' then
       local a = {}
@@ -367,7 +361,7 @@ TAG =
   
   -- --------------------------------------------
   
-  [29] = function(packet,pos)
+  [29] = function(packet,pos,conv)
     local type,value,pos = decode1(packet,pos,conv)
     if type == 'UINT' then
       local t = SHAREDREFS[value + 1]
@@ -383,7 +377,7 @@ TAG =
   
   -- --------------------------------------------
   
-  [30] = function()
+  [30] = function(_,pos)
     return '_rational',nil,pos
   end,
   
@@ -400,43 +394,43 @@ TAG =
   
   -- --------------------------------------------
   
-  [38] = function()
+  [38] = function(_,pos)
     return '_langstring',nil,pos
   end,
   
   -- --------------------------------------------
   
-  [39] = function()
+  [39] = function(_,pos)
     return '_id',nil,pos
   end,
   
   -- --------------------------------------------
   
-  [256] = function()
+  [256] = function(_,pos)
     return '_stringref',nil,pos
   end,
   
   -- --------------------------------------------
   
-  [257] = function()
+  [257] = function(_,pos)
     return '_bmime',nil,pos
   end,
   
   -- --------------------------------------------
   
-  [264] = function()
+  [264] = function(_,pos)
     return '_decimalfractionexp',nil,pos
   end,
   
   -- --------------------------------------------
   
-  [265] = function()
+  [265] = function(_,pos)
     return '_bigfloatexp',nil,pos
   end,
   
   -- --------------------------------------------
   
-  [22098] = function()
+  [22098] = function(_,pos)
     return '_indirection',nil,pos
   end,
 }
@@ -445,49 +439,49 @@ TAG =
 
 EXTENDED = 
 {
-  [20] = function(packet,pos,value)
+  [20] = function(_,pos)
     return 'false',false,pos
   end,
   
   -- --------------------------------------------
   
-  [21] = function(packet,pos,value)
+  [21] = function(_,pos)
     return 'true',true,pos
   end,
   
   -- --------------------------------------------
   
-  [22] = function(packet,pos,value)
+  [22] = function(_,pos)
     return 'null',nil,pos
   end,
   
   -- --------------------------------------------
   
-  [23] = function(packet,pos,value)
+  [23] = function(_,pos)
     return 'undefined',nil,pos
   end,
   
   -- --------------------------------------------
   
-  [25] = function(packet,pos,value)
+  [25] = function(_,pos,value)
     return 'half',cbor5.unpackf(value),pos
   end,
   
   -- --------------------------------------------
   
-  [26] = function(packet,pos,value)
+  [26] = function(_,pos,value)
     return 'single',cbor5.unpackf(value),pos
   end,
   
   -- --------------------------------------------
   
-  [27] = function(packet,pos,value)
+  [27] = function(_,pos,value)
     return 'double',cbor5.unpackf(value),pos
   end,
   
   -- --------------------------------------------
   
-  [31] = function(packet,pos,value)
+  [31] = function(_,pos)
     return '__break',false,pos
   end,
 }
@@ -535,7 +529,7 @@ TYPES =
   -- UINT	unsigned integers
   -- ------------------------------------------
   
-  function(packet,pos,info,value)
+  function(_,pos,info,value)
     if info < 28 then
       return 'UINT',cbor5.unpacki(value),pos
     else
@@ -547,7 +541,7 @@ TYPES =
   -- NINT	negative integers
   -- ------------------------------------------
   
-  function(packet,pos,info,value)
+  function(_,pos,info,value)
     if info < 28 then
       return 'NINT',-1 - cbor5.unpacki(value),pos
     else
@@ -575,7 +569,7 @@ TYPES =
   -- ARRAY	Array of types, value is item count
   -- ------------------------------------------
   
-  function(packet,pos,info,value)
+  function(_,pos,info,value)
     if info < 28 then
       return 'ARRAY',cbor5.unpacki(value),pos
     elseif info == 31 then
@@ -589,7 +583,7 @@ TYPES =
   -- MAP	name/value structures, value is pair count
   -- ------------------------------------------
   
-  function(packet,pos,info,value)
+  function(_,pos,info,value)
     if info < 28 then
       return 'MAP',cbor5.unpacki(value),pos
     elseif info == 31 then
@@ -603,7 +597,7 @@ TYPES =
   -- TAG	tagged data
   -- ------------------------------------------
   
-  function(packet,pos,info,value,conv)
+  function(packet,pos,_,value,conv)
     local value = cbor5.unpacki(value)
     if TAG[value] then
       return TAG[value](packet,pos,value,conv)
@@ -683,7 +677,7 @@ end
 -- ***********************************************************************
 
 function getarray(max,packet,pos,conv,a)
-  local a = a or {}
+  a = a or {}
   local ctype
   local value
   
@@ -711,11 +705,11 @@ end
 -- ***********************************************************************
 
 function getmap(max,packet,pos,conv,m)
-  local m = m or {}
+  m = m or {}
   local kctype,key
   local vctype,val
   
-  for i = 1 , max do
+  for i = 1 , max do -- luacheck: ignore
     kctype,key,pos = decode1(packet,pos,conv)
     
     if kctype == '__break' then break end

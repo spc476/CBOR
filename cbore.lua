@@ -285,11 +285,11 @@ TAG = setmetatable(
       -- 27
     end,
     
-    _shareable = function(value)
+    _shareable = function()
       -- 28,
     end,
     
-    _shared = function(value)
+    _shared = function()
       -- 29,
     end,
     
