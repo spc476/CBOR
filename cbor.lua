@@ -164,12 +164,13 @@ end
 -- ***********************************************************************
 
 local SHAREDREFS
-local TAG =
+
+TAG =
 {
   -- -------------------------------
   -- Following defined in RFC-7049
   -- -------------------------------
-  
+
   [0] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     if type == 'TEXT' then
@@ -395,7 +396,7 @@ local TAG =
 
 -- ***********************************************************************
 
-local EXT_TYPES = 
+EXTENDED = 
 {
   [20] = function(packet,pos,value)
     return 'false',false,pos
@@ -467,7 +468,7 @@ end
 --
 -- ***********************************************************************
 
-local TYPES =
+TYPES =
 {
   -- ------------------------------------------
   -- UINT	unsigned integers
@@ -551,14 +552,14 @@ local TYPES =
   end,
   
   -- ------------------------------------------
-  -- EXT_TYPES	other (extended) values.
+  -- EXTENDED	other (extended) values.
   -- ------------------------------------------
   
   function(packet,pos,info,value)
-    if EXT_TYPES[info] then
-      return EXT_TYPES[info](packet,pos,value)
+    if EXTENDED[info] then
+      return EXTENDED[info](packet,pos,value)
     else
-      throw(pos,"EXT_TYPES type %d not supported",info)
+      throw(pos,"EXTENDED type %d not supported",info)
     end
   end,
 }
