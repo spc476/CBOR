@@ -180,6 +180,8 @@ TAG =
     end
   end,
   
+  -- --------------------------------------------
+  
   [1] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     if isnumber(type) then
@@ -188,6 +190,8 @@ TAG =
       throw(pos,"_epoch: wanted number, got %s",type)
     end
   end,
+  
+  -- --------------------------------------------
   
   [2] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
@@ -198,6 +202,8 @@ TAG =
     end
   end,
   
+  -- --------------------------------------------
+  
   [3] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     if type == 'BIN' then
@@ -206,6 +212,8 @@ TAG =
       throw(pos,"_nbignum: wanted BIN, got %s",type)
     end
   end,
+  
+  -- --------------------------------------------
   
   [4] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
@@ -219,6 +227,8 @@ TAG =
     return '_decimalfraction',result,pos
   end,
   
+  -- --------------------------------------------
+  
   [5] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     if type ~= 'ARRAY' then throw(pos,"_bigfloat: wanted ARRAY, got %s",type) end
@@ -231,20 +241,28 @@ TAG =
     return '_bigfloat',result,pos
   end,
   
+  -- --------------------------------------------
+  
   [21] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     return '_tobase64url',value,pos
   end,
+  
+  -- --------------------------------------------
   
   [22] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     return '_tobase64',value,pos
   end,
   
+  -- --------------------------------------------
+  
   [23] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     return '_tobase16',value,pos
   end,
+  
+  -- --------------------------------------------
   
   [24] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
@@ -254,7 +272,9 @@ TAG =
       throw(pos,"_cbor: wanted BIN, got %s",type)
     end
   end,
-
+  
+  -- --------------------------------------------
+  
   [32] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     if type == 'TEXT' then
@@ -263,6 +283,8 @@ TAG =
       throw(pos,"_url: wanted TEXT, got %s",type)
     end
   end,
+  
+  -- --------------------------------------------
   
   [33] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
@@ -273,6 +295,8 @@ TAG =
     end
   end,
   
+  -- --------------------------------------------
+  
   [34] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     if type == 'TEXT' then
@@ -281,6 +305,8 @@ TAG =
       throw(pos,"_base64: wanted TEXT, got %s",type)
     end
   end,
+  
+  -- --------------------------------------------
   
   [35] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
@@ -291,6 +317,8 @@ TAG =
     end
   end,
   
+  -- --------------------------------------------
+  
   [36] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
     if type == 'TEXT' then
@@ -299,6 +327,8 @@ TAG =
       throw(pos,"_mime: wanted TEXT, got %s",type)
     end
   end,
+  
+  -- --------------------------------------------
   
   [55799] = function(packet,pos)
     return '_magic_cbor','cbor',pos
@@ -313,13 +343,19 @@ TAG =
     return '_nthstring',nil,pos
   end,
   
+  -- --------------------------------------------
+  
   [26] = function()
     return '_perlobj',nil,pos
   end,
   
+  -- --------------------------------------------
+  
   [27] = function()
     return '_serialobj',nil,pos
   end,
+  
+  -- --------------------------------------------
   
   [28] = function(packet,pos,value,conv)
     local type,value,pos = decode1(packet,pos,conv)
@@ -338,6 +374,8 @@ TAG =
     end
   end,
   
+  -- --------------------------------------------
+  
   [29] = function(packet,pos)
     local type,value,pos = decode1(packet,pos,conv)
     if type == 'UINT' then
@@ -352,9 +390,13 @@ TAG =
     end
   end,
   
+  -- --------------------------------------------
+  
   [30] = function()
     return '_rational',nil,pos
   end,
+  
+  -- --------------------------------------------
   
   [37] = function(packet,pos)
     local type,value,pos = decode1(packet,pos)
@@ -365,29 +407,43 @@ TAG =
     end
   end,
   
+  -- --------------------------------------------
+  
   [38] = function()
     return '_langstring',nil,pos
   end,
+  
+  -- --------------------------------------------
   
   [39] = function()
     return '_id',nil,pos
   end,
   
+  -- --------------------------------------------
+  
   [256] = function()
     return '_stringref',nil,pos
   end,
+  
+  -- --------------------------------------------
   
   [257] = function()
     return '_bmime',nil,pos
   end,
   
+  -- --------------------------------------------
+  
   [264] = function()
     return '_decimalfractionexp',nil,pos
   end,
   
+  -- --------------------------------------------
+  
   [265] = function()
     return '_bigfloatexp',nil,pos
   end,
+  
+  -- --------------------------------------------
   
   [22098] = function()
     return '_indirection',nil,pos
@@ -402,29 +458,43 @@ EXTENDED =
     return 'false',false,pos
   end,
   
+  -- --------------------------------------------
+  
   [21] = function(packet,pos,value)
     return 'true',true,pos
   end,
+  
+  -- --------------------------------------------
   
   [22] = function(packet,pos,value)
     return 'null',nil,pos
   end,
   
+  -- --------------------------------------------
+  
   [23] = function(packet,pos,value)
     return 'undefined',nil,pos
   end,
+  
+  -- --------------------------------------------
   
   [25] = function(packet,pos,value)
     return 'half',cbor5.unpackf(value),pos
   end,
   
+  -- --------------------------------------------
+  
   [26] = function(packet,pos,value)
     return 'single',cbor5.unpackf(value),pos
   end,
   
+  -- --------------------------------------------
+  
   [27] = function(packet,pos,value)
     return 'double',cbor5.unpackf(value),pos
   end,
+  
+  -- --------------------------------------------
   
   [31] = function(packet,pos,value)
     return '__break',false,pos
