@@ -349,40 +349,52 @@ TAG = setmetatable(
 
 -- ***********************************************************************
 
-SIMPLE =
-{
-  ['false'] = function()
-    return "\244"
-  end,
-  
-  ['true'] = function()
-    return "\245"
-  end,
-  
-  null = function()
-    return "\246"
-  end,
-  
-  undefined = function()
-    return "\247"
-  end,
-  
-  half = function(h)
-    return cbor5.encode(0xE0,25,h)
-  end,
-  
-  single = function(s)
-    return cbor5.encode(0xE0,26,s)
-  end,
-  
-  double = function(d)
-    return cbor5.encode(0xE0,27,d)
-  end,
-  
-  __break = function()
-    return "\255"
-  end,
-}
+SIMPLE = setmetatable(
+  {
+    ['false'] = function()
+      return "\244"
+    end,
+    
+    ['true'] = function()
+      return "\245"
+    end,
+    
+    null = function()
+      return "\246"
+    end,
+    
+    undefined = function()
+      return "\247"
+    end,
+    
+    half = function(h)
+      return cbor5.encode(0xE0,25,h)
+    end,
+    
+    single = function(s)
+      return cbor5.encode(0xE0,26,s)
+    end,
+    
+    double = function(d)
+      return cbor5.encode(0xE0,27,d)
+    end,
+    
+    __break = function()
+      return "\255"
+    end,
+  },
+  {
+    __index = function(_,key)
+      if type(key) ~= 'number' then
+        return nil
+      end
+      
+      return function(value)
+        return cbor5.encode(0xE0,key)
+      end
+    end
+  }
+)
 
 -- ***********************************************************************
 
