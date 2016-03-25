@@ -73,9 +73,17 @@ assert(compare({1,2,3},{1,2,3}))
 
 -- ***********************************************************************
 
+function roundtrip(v)
+  local e = cbore.encode(v)
+  local _,d,p,f = cbor.decode(e)
+  return compare(v,d)
+end
+
+-- ***********************************************************************
+
 local function test(tart,src,target,disp)
   local t,val = cbor.decode(hextobin(src),1)
-
+  
   if disp or DISP then
     if type(target) == 'string' then
       if UTF8:match(target) > #target then
@@ -101,6 +109,9 @@ local function test(tart,src,target,disp)
       assert(compare(val,target))
     end
   end
+  
+  assert(roundtrip(target))
+  
 end
 
 -- ***********************************************************************
