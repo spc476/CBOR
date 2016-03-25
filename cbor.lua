@@ -93,7 +93,6 @@ local _LUA_VERSION = _VERSION
 local error    = error
 local pcall    = pcall
 
-local math     = require "math"
 local string   = require "string"
 local table    = require "table"
 local cbor5    = require "cbor5"
@@ -481,7 +480,7 @@ SIMPLE =
   
   -- --------------------------------------------
   
-  [27] = function(packet,pos,value)
+  [27] = function(_,pos,value)
     return 'double',value,pos
   end,
   
@@ -527,7 +526,7 @@ TYPES =
   -- UINT	unsigned integers
   -- ------------------------------------------
   
-  [0x00] = function(packet,pos,info,value)
+  [0x00] = function(_,pos,_,value)
     return 'UINT',value,pos
   end,
   
@@ -535,7 +534,7 @@ TYPES =
   -- NINT	negative integers
   -- ------------------------------------------
   
-  [0x20] = function(packet,pos,info,value)
+  [0x20] = function(_,pos,_,value)
     return 'NINT',-1 - value,pos
   end,
   
@@ -559,7 +558,7 @@ TYPES =
   -- ARRAY	Array of types, value is item count
   -- ------------------------------------------
   
-  [0x80] = function(packet,pos,info,value)
+  [0x80] = function(_,pos,_,value)
     return 'ARRAY',value,pos
   end,
   
@@ -567,7 +566,7 @@ TYPES =
   -- MAP	name/value structures, value is pair count
   -- ------------------------------------------
   
-  [0xA0] = function(packet,pos,info,value)
+  [0xA0] = function(_,pos,_,value)
     return 'MAP',value,pos
   end,
   
@@ -575,7 +574,7 @@ TYPES =
   -- TAG	tagged data
   -- ------------------------------------------
   
-  [0xC0] = function(packet,pos,info,value,conv)
+  [0xC0] = function(packet,pos,_,value,conv)
     if TAG[value] then
       return TAG[value](packet,pos,value,conv)
     else

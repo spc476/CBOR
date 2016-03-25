@@ -391,7 +391,7 @@ SIMPLE = setmetatable(
         return nil
       end
       
-      return function(value)
+      return function()
         return cbor5.encode(0xE0,key)
       end
     end
