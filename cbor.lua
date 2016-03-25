@@ -587,7 +587,7 @@ TYPES =
   -- SIMPLE	other (extended) values.
   -- ------------------------------------------
   
-  [0xE0] = function(packet,pos,info,value)
+  [0xE0] = function(_,pos,info,value)
     if SIMPLE[info] then
       return SIMPLE[info](pos,value)
     else
