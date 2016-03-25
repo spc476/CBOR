@@ -23,7 +23,7 @@ lpeg       = require "lpeg"
 safestring = require "org.conman.table".safestring
 cbor       = require "cbor"
 cbore      = require "cbore"
-DISP       = true
+DISP       = false
 
 -- ***********************************************************************
 
@@ -81,37 +81,46 @@ end
 
 -- ***********************************************************************
 
-local function test(tart,src,target,disp)
+local function test(tart,src,target,disp,bad,badrt)
   local t,val = cbor.decode(hextobin(src),1)
-  
-  if disp or DISP then
+
+  if disp or DISP or bad or badrt then
+    local xx = ""
+    
+    if bad     then xx = xx .. "D" end
+    if badrt   then xx = xx .. "R" end
+    if #xx > 0 then xx = "XX-" .. xx end
+    
     if type(target) == 'string' then
       if UTF8:match(target) > #target then
-        print(tart,target,t,val)
+        print(tart,target,t,val,xx)
       else
         local starget = safestring(target)
-        print(tart,safestring(target),t,safestring(val))
+        print(tart,safestring(target),t,safestring(val),xx)
       end
     else
-      print(tart,target,t,val)
+      print(tart,target,t,val,xx)
     end
   end
   
   assert(tart == t)
   
-  if type(target) == 'function' then
-    assert(target(val))
-  else
-    if (t == 'half' or t == 'single' or t == 'double')
-    and target ~= target and val ~= val then
-      assert(true)
+  if not bad then
+    if type(target) == 'function' then
+      assert(target(val))
     else
-      assert(compare(val,target))
+      if (t == 'half' or t == 'single' or t == 'double')
+      and target ~= target and val ~= val then
+        assert(true)
+      else
+        assert(compare(val,target))
+      end
     end
+  end 
+  
+  if not badrt then
+    assert(roundtrip(target))
   end
-  
-  assert(roundtrip(target))
-  
 end
 
 -- ***********************************************************************
@@ -136,22 +145,22 @@ test('half',"F90000",0.0)
 test('half',"F98000",-0.0)
 test('half',"F93C00",1.0)
 test('half',"F93E00",1.5)
-test('half',"F97BFF",65504.0)
---test('single',"fa47c35000",100000.0)
---test('single',"fa7f7fffff",3.4028234663852886e+38)
-test('double',"fb7e37e43c8800759c",1.0e+300)
---test('single',"f90001",5.960464477539063e-8)
---test('single',"f90400",0.00006103515625)
---test('single',"f9c400",-4.0)
+test('half',"F97BFF",65504.0) 
+test('single',"fa47c35000",100000.0			, nil , true) 
+test('single',"fa7f7fffff",3.4028234663852886e+38	, nil , true  , true)
+test('double',"fb7e37e43c8800759c",1.0e+300		, nil , false , true)
+test('half',"f90001",5.960464477539063e-8)
+test('half',"f90400",0.00006103515625)
+test('half',"f9c400",-4.0)
 test('double',"fbc010666666666666",-4.1)
 test('half',"f97c00",math.huge)
-test('half',"f97e00",0/0)
+test('half',"f97e00",0/0				, nil , false , true)
 test('half',"f9fc00",-math.huge)
 test('single',"fa7f800000",math.huge)
---test('single',"fa7fc00000",0/0)
+test('single',"fa7fc00000",0/0				, nil , true  , true)
 test('single',"faff800000",-math.huge)
 test('double',"fb7ff0000000000000",math.huge)
-test('double',"fb7ff8000000000000",0/0)
+test('double',"fb7ff8000000000000",0/0			, nil , true  , true)
 test('double',"fbfff0000000000000",-math.huge)
 test('false',"F4",false)
 test('true',"F5",true)
@@ -181,7 +190,7 @@ test('ARRAY',"8301820203820405",{ 1 , { 2 , 3 } , { 4 , 5 }})
 test('ARRAY',"98190102030405060708090a0b0c0d0e0f101112131415161718181819",
 	{ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25 })
 test('MAP',"A0",{})
-test('MAP',"a201020304",{ [1] = 2 , [3] = 4})
+test('MAP',"a201020304",{ [1] = 2 , [3] = 4}		, nil , false , true)
 test('MAP',"a26161016162820203",{ a = 1 , b = { 2, 3 } })
 test('ARRAY',"826161a161626163",{ "a" , { b = "c" }})
 test('MAP',"a56161614161626142616361436164614461656145",
