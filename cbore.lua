@@ -91,7 +91,7 @@ local math  = require "math"
 local lpeg  = require "lpeg"
 local cbor5 = require "cbor5"
 
-local _VERSION     = _VERSION
+local _LUA_VERSION = _VERSION
 local assert       = assert
 local error        = error
 local getmetatable = getmetatable
@@ -100,7 +100,7 @@ local pairs        = pairs
 local ipairs       = ipairs
 local type         = type
 
-if _VERSION == "Lua 5.1" then
+if _LUA_VERSION == "Lua 5.1" then
   function math.type(n)
     if n ~= n then
       return 'float'
@@ -117,6 +117,8 @@ if _VERSION == "Lua 5.1" then
 else
   _ENV = {}
 end
+
+_VERSION = cbor5._VERSION
 
 -- ***********************************************************************
 
@@ -418,10 +420,10 @@ local function generic(v)
   elseif mt.__len then
     return ARRAY(v)
     
-  elseif _VERSION >= "Lua 5.2" and mt.__ipairs then
+  elseif _LUA_VERSION >= "Lua 5.2" and mt.__ipairs then
     return ARRAY(v)
   
-  elseif _VERSION >= "Lua 5.3" and mt.__pairs then
+  elseif _LUA_VERSION >= "Lua 5.3" and mt.__pairs then
     return MAP(v)
   
   else
@@ -477,6 +479,6 @@ end
 
 -- ***********************************************************************
 
-if _VERSION > "Lua 5.1" then
+if _LUA_VERSION > "Lua 5.1" then
   return _ENV
 end

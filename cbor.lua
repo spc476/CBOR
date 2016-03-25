@@ -89,7 +89,7 @@ local dump = require "org.conman.table".dump
 --
 -- ********************************************************************
 
-local _VERSION = _VERSION
+local _LUA_VERSION = _VERSION
 local error    = error
 local pcall    = pcall
 
@@ -98,11 +98,13 @@ local string   = require "string"
 local table    = require "table"
 local cbor5    = require "cbor5"
 
-if _VERSION == "Lua 5.1" then
+if _LUA_VERSION == "Lua 5.1" then
   module "cbor"
 else
   _ENV = {}
 end
+
+_VERSION = cbor5._VERSION
 
 -- ***********************************************************************
 
@@ -746,6 +748,6 @@ end
 
 -- ***********************************************************************
 
-if _VERSION >= "Lua 5.2" then
+if _LUA_VERSION >= "Lua 5.2" then
   return _ENV
 end
