@@ -85,7 +85,7 @@ test('false',"F4",false)
 test('true',"F5",true)
 test('null',"F6",nil)
 test('undefined',"F7",nil)
-
+test('simple',"F0",16)
 
 
 

@@ -585,7 +585,7 @@ TYPES =
     if SIMPLE[info] then
       return SIMPLE[info](packet,pos,value)
     else
-      throw(pos,"SIMPLE type %d not supported",info)
+      return 'simple',value,pos
     end
   end,
 }
