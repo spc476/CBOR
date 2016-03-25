@@ -444,49 +444,49 @@ TAG =
 
 SIMPLE = 
 {
-  [20] = function(_,pos)
+  [20] = function(pos)
     return 'false',false,pos
   end,
   
   -- --------------------------------------------
   
-  [21] = function(_,pos)
+  [21] = function(pos)
     return 'true',true,pos
   end,
   
   -- --------------------------------------------
   
-  [22] = function(_,pos)
+  [22] = function(pos)
     return 'null',nil,pos
   end,
   
   -- --------------------------------------------
   
-  [23] = function(_,pos)
+  [23] = function(pos)
     return 'undefined',nil,pos
   end,
   
   -- --------------------------------------------
   
-  [25] = function(_,pos,value)
+  [25] = function(pos,value)
     return 'half',value,pos
   end,
   
   -- --------------------------------------------
   
-  [26] = function(_,pos,value)
+  [26] = function(pos,value)
     return 'single',value,pos
   end,
   
   -- --------------------------------------------
   
-  [27] = function(_,pos,value)
+  [27] = function(pos,value)
     return 'double',value,pos
   end,
   
   -- --------------------------------------------
   
-  [31] = function(_,pos)
+  [31] = function(pos)
     return '__break',false,pos
   end,
 }
@@ -589,7 +589,7 @@ TYPES =
   
   [0xE0] = function(packet,pos,info,value)
     if SIMPLE[info] then
-      return SIMPLE[info](packet,pos,value)
+      return SIMPLE[info](pos,value)
     else
       return 'simple',value,pos
     end
