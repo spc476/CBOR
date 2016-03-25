@@ -43,6 +43,7 @@
 --			* double	double precision IEEE 754 float
 --			* __break	SEE NOTES
 --			*** tagged types
+--			* tag-*		unsupported tag type (Lua number)
 --			* _datetime	datetime (TEXT)
 --			* _epoch	see cbor.isnumber()
 --			* _pbignum	positive bignum (BIN)

@@ -45,6 +45,7 @@ local dump = require "org.conman.table".dump
 --			* double	double precision IEEE 754 float
 --			* __break	SEE NOTES
 --			*** tagged types
+--			* tag-*		unsupported tag type (Lua number)
 --			* _datetime	datetime (TEXT)
 --			* _epoch	see cbor.isnumber()
 --			* _pbignum	positive bignum (BIN)
@@ -576,7 +577,8 @@ TYPES =
     if TAG[value] then
       return TAG[value](packet,pos,value,conv)
     else
-      throw(pos,"TAG type %d not supported",value)
+      local _,tvalue,npos = decode(packet,pos)
+      return string.format("tag-%d",value),tvalue,npos
     end
   end,
   
