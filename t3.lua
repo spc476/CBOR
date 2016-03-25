@@ -1,8 +1,18 @@
+lpeg       = require "lpeg"
 dump       = require "org.conman.table".dump
 safestring = require "org.conman.table".safestring
 cbor       = require "cbor"
 cbore      = require "cbore"
 DISP       = true
+
+-- ***********************************************************************
+
+local UTF8 = (
+                 lpeg.R("\7\13"," ~")
+               + lpeg.R("\194\223") * lpeg.R("\128\191")
+               + lpeg.R("\224\239") * lpeg.R("\128\191") * lpeg.R("\128\191")
+               + lpeg.R("\240\224") * lpeg.R("\128\191") * lpeg.R("\128\191") * lpeg.R("\128\191")
+	     )^0
 
 -- ***********************************************************************
 
@@ -16,13 +26,44 @@ end
 
 -- ***********************************************************************
 
+function compare(a,b)
+  if type(a) ~= type(b) then
+    return false
+  end
+  
+  if type(a) == 'table' then
+    for name,value in pairs(a) do
+      if not compare(value,b[name]) then
+        return false
+      end
+    end
+    for name,value in pairs(b) do
+      if not compare(value,a[name]) then
+        return false
+      end
+    end
+    return true
+  else
+    return a == b
+  end
+end
+
+assert(compare({a=1,b=2},{b=2,a=1}))
+assert(compare({1,2,3},{1,2,3}))
+
+-- ***********************************************************************
+
 local function test(tart,src,target,disp)
   local t,val = cbor.decode(hextobin(src),1)
 
   if disp or DISP then
-    if tart == 'TEXT' or tart == 'BIN' then
-      local starget = safestring(target)
-      print(tart,safestring(target),t,safestring(val))
+    if type(target) == 'string' then
+      if UTF8:match(target) > #target then
+        print(tart,target,t,val)
+      else
+        local starget = safestring(target)
+        print(tart,safestring(target),t,safestring(val))
+      end
     else
       print(tart,target,t,val)
     end
@@ -37,7 +78,7 @@ local function test(tart,src,target,disp)
     and target ~= target and val ~= val then
       assert(true)
     else
-      assert(val == target)
+      assert(compare(val,target))
     end
   end
 end
@@ -86,11 +127,43 @@ test('true',"F5",true)
 test('null',"F6",nil)
 test('undefined',"F7",nil)
 test('simple',"F0",16)
-
-
-
-test('NINT',"21",-2)
+test('simple',"f818",24)
+test('simple',"F8FF",255)
+test('_epoch',"c11a514b67b0",1363896240)
+test('_epoch',"c1fb41d452d9ec200000",1363896240.5)
+test('_tobase16',"d74401020304","\1\2\3\4") 	-- RFC wrong here
+test('_cbor',"d818456449455446","dIETF")	-- should be a binary string
+test('_url',"d82076687474703a2f2f7777772e6578616d706c652e636f6d",
+	"http://www.example.com")
+test('BIN',"40","")
+test('BIN',"4401020304","\1\2\3\4")
+test('TEXT',"60","")
 test('TEXT',"6161","a")
 test('TEXT',"6449455446","IETF")
-test('BIN',"450001020304","\0\1\2\3\4")
-
+test('TEXT',"62225c",[["\]])
+test('TEXT',"62c3bc","\195\188")
+test('TEXT',"63e6b0b4","\230\176\180")
+test('TEXT',"64f0908591","\240\144\133\145")
+test('ARRAY',"80",{})
+test('ARRAY',"83010203",{1,2,3})
+test('ARRAY',"8301820203820405",{ 1 , { 2 , 3 } , { 4 , 5 }})
+test('ARRAY',"98190102030405060708090a0b0c0d0e0f101112131415161718181819",
+	{ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25 })
+test('MAP',"A0",{})
+test('MAP',"a201020304",{ [1] = 2 , [3] = 4})
+test('MAP',"a26161016162820203",{ a = 1 , b = { 2, 3 } })
+test('ARRAY',"826161a161626163",{ "a" , { b = "c" }})
+test('MAP',"a56161614161626142616361436164614461656145",
+	{ a = 'A' , b = 'B' , c = 'C' , d = 'D' , e = 'E' })
+test('BIN',"5f42010243030405ff","\1\2\3\4\5")
+test('TEXT',"7f657374726561646d696e67ff","streaming")
+test('ARRAY',"9fff",{})
+test('ARRAY',"9f018202039f0405ffff",{ 1 , { 2 , 3 } , { 4 , 5 }})
+test('ARRAY',"9f01820203820405ff",{ 1 , { 2 ,3 } , { 4 , 5 }})
+test('ARRAY',"83018202039f0405ff",{ 1 , { 2 ,3 } , { 4 , 5 }})
+test('ARRAY',"83019f0203ff820405",{ 1 , { 2 ,3 } , { 4 , 5 }})
+test('ARRAY',"9f0102030405060708090a0b0c0d0e0f101112131415161718181819ff",
+	{ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25 })
+test('MAP',"bf61610161629f0203ffff",{ a = 1 , b = { 2, 3 } })
+test('ARRAY',"826161bf61626163ff",{ "a" , { b = "c" }})
+test('MAP',"bf6346756ef563416d7421ff",{ Fun = true , Amt = -2 })
