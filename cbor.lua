@@ -437,7 +437,7 @@ TAG =
 
 -- ***********************************************************************
 
-EXTENDED = 
+SIMPLE = 
 {
   [20] = function(_,pos)
     return 'false',false,pos
@@ -578,14 +578,14 @@ TYPES =
   end,
   
   -- ------------------------------------------
-  -- EXTENDED	other (extended) values.
+  -- SIMPLE	other (extended) values.
   -- ------------------------------------------
   
   [0xE0] = function(packet,pos,info,value)
-    if EXTENDED[info] then
-      return EXTENDED[info](packet,pos,value)
+    if SIMPLE[info] then
+      return SIMPLE[info](packet,pos,value)
     else
-      throw(pos,"EXTENDED type %d not supported",info)
+      throw(pos,"SIMPLE type %d not supported",info)
     end
   end,
 }

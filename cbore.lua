@@ -345,7 +345,7 @@ TAG = setmetatable(
 
 -- ***********************************************************************
 
-EXTENDED =
+SIMPLE =
 {
   ['false'] = function()
     return "\244"
@@ -417,13 +417,13 @@ end
 
 __ENCODE_MAP =
 {
-  ['nil'] = EXTENDED.null,
+  ['nil'] = SIMPLE.null,
   
   ['boolean'] = function(b)
     if b then
-      return EXTENDED['true']()
+      return SIMPLE['true']()
     else
-      return EXTENDED['false']()
+      return SIMPLE['false']()
     end
   end,
   
