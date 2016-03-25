@@ -30,7 +30,7 @@ assert(compare({1,2,3},{1,2,3}))
 
 function roundtrip(v)
   local e = cbore.encode(v)
-  local _,d = cbor.decode(e)
+  local _,d,p,f = cbor.decode(e)
   return compare(v,d)
 end
 

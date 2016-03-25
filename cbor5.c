@@ -19,8 +19,11 @@
 *
 *************************************************************************/
 
+#include <math.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <errno.h>
+#include <assert.h>
 
 #include <lua.h>
 #include <lauxlib.h>
@@ -45,275 +48,396 @@ typedef union
   double   d;
 } double__u;
 
-/**************************************************************************/
-
-static int cbor5lua_packf(lua_State *L)
+typedef union
 {
-  double__u      d;
-  float__u       s;
-  unsigned short h;
-  dnf__s         cv;
-  char           result[9];
-  size_t         len;
+  uint8_t b[9];
+  char    c[9];
+} buffer__u;
 
-  d.d = luaL_checknumber(L,1);  
-  dnf_fromdouble(&cv,d.d);
-  if (dnf_tohalf(&h,cv) == 0)
+/***************************************************************************
+* Push a CBOR encoded float value onto the stack (passed in as an integer so
+* we can push things like +-inf or any nubmer of NaNs).  The number of bytes
+* to use is passed in (since floats are encoded in 2, 4 or 8 bytes
+* respectively).
+****************************************************************************/
+
+static void cbor5L_pushvalueN(
+        lua_State              *L,
+        int                     typeinfo,
+        unsigned long long int  value,
+        size_t                  len
+)
+{
+  buffer__u result;
+  size_t    idx = sizeof(buffer__u);
+  
+  assert(L != NULL);
+  assert(
+             ((len == 1) && ((typeinfo & 0x1F) == 24))
+          || ((len == 2) && ((typeinfo & 0x1F) == 25))
+          || ((len == 4) && ((typeinfo & 0x1F) == 26))
+          || ((len == 8) && ((typeinfo & 0x1F) == 27))
+        );
+  
+  for (uint8_t b = value & 255 ; len ; b = (value >>= 8) & 255 , len--)
+    result.b[--idx] = b;
+  
+  result.b[--idx] = typeinfo;
+  lua_pushlstring(L,&result.c[idx],sizeof(buffer__u) - idx);
+}
+
+/*************************************************************************
+* Push a CBOR encoded value onto the Lua stack.  This will use the minimal
+* encoding for a value.
+**************************************************************************/
+
+static void cbor5L_pushvalue(
+        lua_State              *L,
+        int                     type,
+        unsigned long long int  value
+)
+{
+  assert(L             != NULL);
+  assert((type & 0x1F) == 0);
+  
+  /*-----------------------------------------------
+  ; Values below 24 are encoded in the type byte.
+  ;------------------------------------------------*/
+  
+  if (value < 24)
   {
-    result[0] = (char)0xF9;
-    result[1] = h >> 8;
-    result[2] = h &  256;
-    len       = 3;
-  }
-  else if (dnf_tosingle(&s.f,cv) == 0)
-  {
-    result[0] = (char)0xFA;
-    result[1] = (s.i >> 24);
-    result[2] = (s.i >> 16) & 255;
-    result[3] = (s.i >>  8) & 255;
-    result[4] = (s.i >>  0) & 255;
-    len       = 5;
-  }
-  else
-  {
-    result[0] = (char)0xFB;
-    result[1] = (d.i >> 56);
-    result[2] = (d.i >> 48) & 255;
-    result[3] = (d.i >> 40) & 255;
-    result[4] = (d.i >> 32) & 255;
-    result[5] = (d.i >> 24) & 255;
-    result[6] = (d.i >> 16) & 255;
-    result[7] = (d.i >>  8) & 255;
-    result[8] = (d.i >>  0) & 255;
-    len       = 9;
+    char t = (char)type | (char)value;
+    lua_pushlstring(L,&t,1);
   }
   
-  lua_pushlstring(L,result,len);
+  /*----------------------------------------------------------------------
+  ; larger values will take 1 additional byte (info of 24), 2 bytes (25),
+  ; four bytes (26) or eight bytes (27), stored in network-byte order (MSB
+  ; first).  We do this by filling in the character array backwards, filling
+  ; it with the next 8 bits in network-byte-order.  When we hit a zero byte,
+  ; we stop with the loop since there's no more to do.
+  ;------------------------------------------------------------------------*/
+  
+  else
+  {
+    if (value < 256uLL)
+      cbor5L_pushvalueN(L,type | 24,value,1);
+    else if (value < 65536uLL)
+      cbor5L_pushvalueN(L,type | 25,value,2);
+    else if (value < 4294967296uLL)
+      cbor5L_pushvalueN(L,type | 26,value,4);
+    else
+      cbor5L_pushvalueN(L,type | 27,value,8);
+  }
+}
+
+/******************************************************************
+* usage:	blob = cbor5.encode02C(type,value)
+* desc:		Encode a CBOR integer
+* input:	type (integer) 0x00, 0x20, 0xC0
+*		value (number) value to encode
+* return:	blog (binary) CBOR encoded value
+*
+* note:		This is expected to be called to encode CBOR types
+*		UINT (0x00), NINT (0x20) or a TAG (0xC0).
+*
+* note:		Throws on invalid parameters
+*******************************************************************/
+
+static int cbor5lua_encode02C(lua_State *L)
+{
+  assert(L != NULL);
+  
+#ifndef NDEBUG
+  int type = luaL_checkinteger(L,1);
+  assert((type == 0x00) || (type == 0x20) || (type == 0xC0));
+#endif
+
+  cbor5L_pushvalue(L,luaL_checkinteger(L,1),luaL_checknumber(L,2));
   return 1;
 }
 
-/**************************************************************************/
-  
-static int cbor5lua_unpackf(lua_State *L)
+/******************************************************************
+* usage:	blob = cbor5.encode468A(type[,value])
+* desc:		Encode a CBOR integer
+* input:	type (integer) 0x40, 0x60, 0x80, 0xA0
+*		value (number/optional) value to encode
+* return:	blob (binary) CBOR encoded value
+*
+* note:		This is expected to be called to encode CBOR types BIN
+*		(0x40), TEXT (0x60), ARRAY (0x80) or MAP (0xA0).  The value
+*		is optional, if if not present (or nil), a size of
+*		indefinite (info of 31) is used.
+*
+* note:		Throws on invalid parameters
+*******************************************************************/
+
+static int cbor5lua_encode468A(lua_State *L)
 {
-  size_t      ts;
-  const char *t = luaL_checklstring(L,1,&ts);
-  dnf__s      v;
-  double      result;
-  int         rc;
+  assert(L != NULL);
   
-  if (ts == 2)
+#ifndef NDEBUG
+  int type = luaL_checkinteger(L,1);
+  assert((type == 0x40) || (type == 0x60) || (type == 0x80) || (type ==  0xA0));
+#endif
+
+  if (lua_isnil(L,2))
   {
-    unsigned short s = ((unsigned short)((unsigned char)t[0]) << 8)
-                     | ((unsigned short)((unsigned char)t[1]) << 0)
-                     ;
-    dnf_fromhalf(&v,s);
+    char t = (char)(luaL_checkinteger(L,1) | 31);
+    lua_pushlstring(L,&t,1);
   }
-  else if (ts == 4)
+  else
+    cbor5L_pushvalue(L,luaL_checkinteger(L,1),luaL_checknumber(L,2));
+  
+  return 1;
+}
+
+/******************************************************************
+* usage:	blob = cbor5.encodeE(type[,value][,value2])
+* desc:		Encode a CBOR integer or float
+* input:	type (integer) 0xE0
+*		value (number/optional) possible integer to encode
+*		value2 (number/optional) possible float to encode
+* return:	blob (binary) CBOR encoded value
+*
+* note:		This is expected to be called to encode a CBOR extended (or
+*		simple) type (0xE0).  If value and value1 are nil, then the
+*		__break extended type is encoded; if value is nil and value1
+*		exists, then the floating point value1 is encoded using the
+*		best size fo the encoding.  If value is 25 (_half), 26
+*		(_single) or 27 (_double) then value1 is encoded.
+*
+* note:		Throws on invalid parameters or if float encoding will lose
+*		precision.
+*******************************************************************/
+
+static int cbor5lua_encodeE(lua_State *L)
+{
+  unsigned short h;
+  double__u      d;
+  float__u       f;
+  dnf__s         cv;
+  int            type;
+  
+  type = luaL_checkinteger(L,1);
+  
+  assert(L != NULL);
+  
+  if (lua_isnil(L,2))
   {
-    float__u f;
+    /*--------------------------------
+    ; encoding a __break value?
+    ;---------------------------------*/
     
-    f.i = ((uint32_t)((unsigned char)t[0]) << 24)
-        | ((uint32_t)((unsigned char)t[1]) << 16)
-        | ((uint32_t)((unsigned char)t[2]) <<  8)
-        | ((uint32_t)((unsigned char)t[3]) <<  0)
-        ;
-    dnf_fromsingle(&v,f.f);
+    if (lua_isnil(L,3))
+    {
+      char t = (char)(luaL_checkinteger(L,1) | 31);
+      lua_pushlstring(L,&t,1);
+    }
+    
+    /*---------------------------------------------------------------------
+    ; nope, encoding a floating point value in the smallest encoding we can
+    ; muster.
+    ;----------------------------------------------------------------------*/
+    
+    else
+    {
+      d.d = luaL_checknumber(L,3);
+      dnf_fromdouble(&cv,d.d);
+      if (dnf_tohalf(&h,cv) == 0)
+        cbor5L_pushvalueN(L,type | 25,(unsigned long long int)h,2);
+      else if (dnf_tosingle(&f.f,cv) == 0)
+        cbor5L_pushvalueN(L,type | 26,(unsigned long long int)f.i,4);
+      else
+        cbor5L_pushvalueN(L,type | 27,d.i,8);
+    }
   }
-  else if (ts == 8)
+  else
+  {
+    /*-------------------------------------------------------------------
+    ; if we're encoding infos 25, 26 or 27, then we have a floating point
+    ; number to encode, and we'll try to encode it to the specified size. 
+    ; If not, boom!  If so, woot!  If it's not infos 25, 26 or 27, then
+    ; proceed normally.
+    ;--------------------------------------------------------------------*/
+    
+    unsigned long long int value = luaL_checknumber(L,2);
+    if (value == 25)
+    {
+      d.d = luaL_checknumber(L,3);
+      dnf_fromdouble(&cv,d.d);
+      if (dnf_tohalf(&h,cv) != 0)
+        return luaL_error(L,"cannot convert to half-precision");
+      cbor5L_pushvalueN(L,type | 25,(unsigned long long int)h,2);
+    }
+    else if (value == 26)
+    {
+      d.d = luaL_checknumber(L,3);
+      dnf_fromdouble(&cv,d.d);
+      if (dnf_tosingle(&f.f,cv) != 0)
+        return luaL_error(L,"cannot convert to single-preccision");
+      cbor5L_pushvalueN(L,type | 26,(unsigned long long int)f.i,4);
+    }
+    else if (value == 27)
+    {
+      d.d = luaL_checknumber(L,3);
+      cbor5L_pushvalueN(L,type | 27,d.i,8);
+    }
+    else
+      cbor5L_pushvalue(L,luaL_checkinteger(L,1),value);
+  }
+  
+  return 1;
+}
+
+/******************************************************************
+* Usage:	blob = cbor5.encode(type,value[,value2])
+* Desc:		Encode a CBOR value
+* Input:	type (integer) CBOR type
+*		value (number) value to encode (see note)
+*		value (number/optional) float to encode (see note)
+* Return:	blob (binary) CBOR encoded value
+*
+* Note:		value is optional for type of 0xE0.
+*		value1 is optional for type of 0xE0; otherwise it's ignored.
+*******************************************************************/
+
+static int cbor5lua_encode(lua_State *L)
+{
+  assert(L != NULL);
+  
+  switch(luaL_checkinteger(L,1))
+  {
+    case 0x00:
+    case 0x20:
+    case 0xC0: return cbor5lua_encode02C(L);
+    
+    case 0x40:
+    case 0x60:
+    case 0x80:
+    case 0xA0: return cbor5lua_encode468A(L);
+    
+    case 0xE0: return cbor5lua_encodeE(L);
+    default:   break;
+  }
+  
+  return luaL_error(L,"invalid type %d",lua_tointeger(L,1));
+}
+
+/******************************************************************
+* Usage:	value = cbor5.decode(blob,pos)
+* Desc:		Decode a CBOR-encoded value
+* Input:	blob (binary) binary CBOR sludge
+*		pos (integer) position to start decoding from
+* Return:	value (any) 
+*
+* Note:		Throws in invalid parameter
+*******************************************************************/
+
+static int cbor5lua_decode(lua_State *L)
+{
+  size_t                  packlen;
+  const char             *packet = luaL_checklstring(L,1,&packlen);
+  size_t                  pos    = luaL_checkinteger(L,2) - 1;
+  int                     type;
+  int                     info;
+  unsigned long long int  value;
+  size_t                  i;
+  size_t                  len;
+
+  assert(L != NULL);
+    
+  if (pos > packlen)
+    return luaL_error(L,"no input");
+  
+  lua_pushinteger(L,type = packet[pos] & 0xE0);
+  lua_pushinteger(L,info = packet[pos] & 0x1F);
+  
+  /*----------------------------------------------------------------------
+  ; Info values less than 24 and 31 are inherent---the data is just there. 
+  ; So we handle these directly here---the value is either the info value,
+  ; or a HUGE_VAL (in the case of info=31).  Info values 24 to 27 have
+  ; extention bytes (1, 2, 4 or 8).  Get the length for these and carry on.
+  ;-----------------------------------------------------------------------*/
+  
+  if (info < 24)
+  {
+    lua_pushinteger(L,info);
+    lua_pushinteger(L,pos + 2);
+    return 4;
+  }
+  else if (info == 24)
+    len = 1;
+  else if (info == 25)
+    len = 2;
+  else if (info == 26)
+   len = 4;
+  else if (info == 27)
+   len = 8;
+  else if (info == 31)
+  {
+    lua_pushnumber(L,HUGE_VAL);
+    lua_pushinteger(L,pos + 2);
+    return 4;
+  }
+  else
+    return luaL_error(L,"invalid data");
+  
+  /*---------------------
+  ; Sanity checking
+  ;--------------------*/
+  
+  if (pos + len + 1 > packlen)
+    return luaL_error(L,"no more input");
+  
+  /*----------------------------------------------
+  ; Read len bytes of a network-byte-order value.
+  ;-----------------------------------------------*/
+  
+  for (value = 0 , i = 0 ; i < len ; i++)
+    value = (value << 8) | (unsigned long long)((unsigned char)packet[++pos]);
+  
+  /*----------------------------------------------------------------------
+  ; The 0xE0 type encodes actual floating point values.  If we've just read
+  ; in one of these, convert to a double.
+  ;-----------------------------------------------------------------------*/
+  
+  if ((type == 0xE0) && (len > 1))
   {
     double__u d;
+    float__u  f;
+    dnf__s    cv;
     
-    d.i = ((uint64_t)((unsigned char)t[0]) << 56)
-        | ((uint64_t)((unsigned char)t[1]) << 48)
-        | ((uint64_t)((unsigned char)t[2]) << 40)
-        | ((uint64_t)((unsigned char)t[3]) << 32)
-        | ((uint64_t)((unsigned char)t[4]) << 24)
-        | ((uint64_t)((unsigned char)t[5]) << 16)
-        | ((uint64_t)((unsigned char)t[6]) <<  8)
-        | ((uint64_t)((unsigned char)t[7]) <<  0)
-        ;
-   dnf_fromdouble(&v,d.d);
-  }
-  else
-  {
-    lua_pushnil(L);
-    lua_pushinteger(L,EDOM);
-    return 2;
-  }
-  
-  rc = dnf_todouble(&result,v);
-  if (rc == 0)
-    lua_pushnumber(L,result);
-  else
-    lua_pushnil(L);
-  lua_pushinteger(L,rc);
-  return 2;
-}
-
-/**************************************************************************/
-
-#if LUA_VERSION_NUM < 503
-
-static int cbor5lua_packi(lua_State *L)
-{
-  int        type = luaL_checkinteger(L,1);
-  lua_Number n    = luaL_checknumber(L,2);
-  char       result[9];
-  size_t     len;
-  
-  if (n < 24.0)
-  {
-    result[0] = type | (int)n;
-    len       = 1;
-  }
-  else if (n < 256.0)
-  {
-    result[0] = type | 24;
-    result[1] = n;
-    len       = 2;
-  }
-  else if (n < 65536.0)
-  {
-    unsigned int i = n;
-    result[0] = type | 25;
-    result[1] = (i >> 8);
-    result[2] = (i >> 0) & 255;
-    len       = 3;
-  }
-  else if (n < 4294967296.0)
-  {
-    unsigned long i = n;
-    result[0] = type | 26;
-    result[1] = (i >> 24);
-    result[2] = (i >> 16) & 255;
-    result[3] = (i >>  8) & 255;
-    result[4] = (i >>  0) & 255;
-    len       = 5;
-  }
-  else if (n < 9007199254740992.0) // 2^53---maximum integer value
-  {
-    unsigned long long i = n;
-    result[0] = type | 27;
-    result[1] = (i >> 56);
-    result[2] = (i >> 48) & 255;
-    result[3] = (i >> 40) & 255;
-    result[4] = (i >> 32) & 255;
-    result[5] = (i >> 24) & 255;
-    result[6] = (i >> 16) & 255;
-    result[7] = (i >>  8) & 255;
-    result[8] = (i >>  0) & 255;
-    len       = 9;
-  }
-  else
-    return luaL_error(L,"Can't encode integers larger than 9007199254740992");
-  
-  lua_pushlstring(L,result,len);  
-  return 1;
-}
-
-#else
-
-static int cbor5lua_packi(lua_State *L)
-{
-  int          type = luaL_checkinteger(L,1);
-  lua_Unsigned n    = luaL_checkinteger(L,2);
-  char         result[10];
-  
-  if (n < 24uLL)
-  {
-    result[0] = type | n;
-    result[1] = '\0';
-  }
-  else if (n < 256uLL)
-  {
-    result[0] = type | 24;
-    result[1] = n;
-    result[2] = '\0';
-  }
-  else if (n < 65536uLL)
-  {
-    result[0] = type | 25;
-    result[1] = (i >> 16);
-    result[2] = (i >>  0) & 255;
-    result[3] = '\0';
-  }
-  else if (n < 4294967296uLL)
-  {
-    result[0] = type | 26;
-    result[1] = (i >> 24);
-    result[2] = (i >> 16) & 255;
-    result[3] = (i >>  8) & 255;
-    result[4] = (i >>  0) & 255;
-    result[5] = '\0';
-  }
-  else
-  {
-    result[0] = type | 27;
-    result[1] = (i >> 56);
-    result[2] = (i >> 48) & 255;
-    result[3] = (i >> 40) & 255;
-    result[4] = (i >> 32) & 255;
-    result[5] = (i >> 24) & 255;
-    result[6] = (i >> 16) & 255;
-    result[7] = (i >>  8) & 255;
-    result[8] = (i >>  0) & 255;
-    result[9] = '\0';
+    if (len == 2)
+    {
+      dnf_fromhalf(&cv,value);
+      dnf_todouble(&d.d,cv);
+    }
+    else if (len == 4)
+    {
+      f.i = value;
+      dnf_fromsingle(&cv,f.f);
+      dnf_todouble(&d.d,cv);
+    }
+    else if (len == 8)
+      d.i = value;
+    
+    lua_pushnumber(L,d.d);
+    lua_pushinteger(L,pos + 2);
+    return 4;
   }
   
-  lua_pushstring(L,result);
-  return 1;
-}
-
-#endif
-
-/**************************************************************************/
-
-static int cbor5lua_unpacki(lua_State *L)
-{
-  size_t              ts;
-  const char         *t = luaL_checklstring(L,1,&ts);
-  unsigned long long  i;
-  
-  if (ts == 1)
-    i = (unsigned long long)((unsigned char)t[0]);
-  else if (ts == 2)
-    i = ((unsigned long long)((unsigned char)t[0]) << 8)
-      | ((unsigned long long)((unsigned char)t[1]))
-      ;
-  else if (ts == 4)
-    i = ((unsigned long long)((unsigned char)t[0]) << 24)
-      | ((unsigned long long)((unsigned char)t[1]) << 16)
-      | ((unsigned long long)((unsigned char)t[2]) <<  8)
-      | ((unsigned long long)((unsigned char)t[3]) <<  0)
-      ;
-  else
-    i = ((unsigned long long)((unsigned char)t[0]) << 56)
-      | ((unsigned long long)((unsigned char)t[1]) << 48)
-      | ((unsigned long long)((unsigned char)t[2]) << 40)
-      | ((unsigned long long)((unsigned char)t[3]) << 32)
-      | ((unsigned long long)((unsigned char)t[4]) << 24)
-      | ((unsigned long long)((unsigned char)t[5]) << 16)
-      | ((unsigned long long)((unsigned char)t[6]) <<  8)
-      | ((unsigned long long)((unsigned char)t[7]) <<  0)
-      ;
-  
-#if LUA_VERSION_NUM == 503
-  lua_pushinteger(L,i);
-#else
-  lua_pushnumber(L,i);
-#endif
-  return 1;
+  lua_pushnumber(L,value);
+  lua_pushinteger(L,pos + 2);
+  return 4;
 }
 
 /**************************************************************************/
 
 static luaL_Reg cbor5_reg[] =
 {
-  { "packf"	, cbor5lua_packf	} ,
-  { "unpackf"	, cbor5lua_unpackf	} ,
-  { "packi"	, cbor5lua_packi	} ,
-  { "unpacki"	, cbor5lua_unpacki	} ,
+  { "encode"	, cbor5lua_encode	} ,
+  { "decode"	, cbor5lua_decode	} ,
   { NULL	, NULL			}
 };
 

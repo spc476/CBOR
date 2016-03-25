@@ -464,19 +464,19 @@ EXTENDED =
   -- --------------------------------------------
   
   [25] = function(_,pos,value)
-    return 'half',cbor5.unpackf(value),pos
+    return 'half',value,pos
   end,
   
   -- --------------------------------------------
   
   [26] = function(_,pos,value)
-    return 'single',cbor5.unpackf(value),pos
+    return 'single',value,pos
   end,
   
   -- --------------------------------------------
   
-  [27] = function(_,pos,value)
-    return 'double',cbor5.unpackf(value),pos
+  [27] = function(packet,pos,value)
+    return 'double',value,pos
   end,
   
   -- --------------------------------------------
@@ -489,19 +489,10 @@ EXTENDED =
 -- ***********************************************************************
 
 local function bintext(packet,pos,info,value,type)
-  if info < 28 then
-    local value = cbor5.unpacki(value) - 1
-    if pos + value > #packet then
-      throw(pos,"%s: no more input (%d %d)",type,pos+value,#packet)
-    end
-    
-    local data = packet:sub(pos,pos + value)
-    return type,data,pos + value + 1
+  if info < 31 then
+    local data = packet:sub(pos,pos + value - 1)
+    return type,data,pos + value
   else
-    if info ~= 31 then
-      throw(pos,"%s format %d not supported",type,info)
-    end
-    
     local acc = {}
     local t,value
     
@@ -516,6 +507,7 @@ local function bintext(packet,pos,info,value,type)
   end
 end
 
+
 -- ***********************************************************************
 --
 -- Decodes the major eight types of CBOR encoded data.  These return the
@@ -529,31 +521,23 @@ TYPES =
   -- UINT	unsigned integers
   -- ------------------------------------------
   
-  function(_,pos,info,value)
-    if info < 28 then
-      return 'UINT',cbor5.unpacki(value),pos
-    else
-      throw(pos,"UINT format %d not supported",info)
-    end
+  [0x00] = function(packet,pos,info,value)
+    return 'UINT',value,pos
   end,
   
   -- ------------------------------------------
   -- NINT	negative integers
   -- ------------------------------------------
   
-  function(_,pos,info,value)
-    if info < 28 then
-      return 'NINT',-1 - cbor5.unpacki(value),pos
-    else
-      throw(pos,"NINT format %d not supported",info)
-    end
+  [0x20] = function(packet,pos,info,value)
+    return 'NINT',-1 - value,pos
   end,
   
   -- ------------------------------------------
   -- BIN	binary string
   -- ------------------------------------------
   
-  function(packet,pos,info,value)
+  [0x40] = function(packet,pos,info,value)
     return bintext(packet,pos,info,value,'BIN')
   end,
   
@@ -561,7 +545,7 @@ TYPES =
   -- TEXT	UTF-8 string
   -- ------------------------------------------
   
-  function(packet,pos,info,value)
+  [0x60] = function(packet,pos,info,value)
     return bintext(packet,pos,info,value,'TEXT')
   end,
   
@@ -569,36 +553,23 @@ TYPES =
   -- ARRAY	Array of types, value is item count
   -- ------------------------------------------
   
-  function(_,pos,info,value)
-    if info < 28 then
-      return 'ARRAY',cbor5.unpacki(value),pos
-    elseif info == 31 then
-      return 'ARRAY',math.huge,pos
-    else
-      throw(pos,"ARRAY format %d not supported",info)
-    end
+  [0x80] = function(packet,pos,info,value)
+    return 'ARRAY',value,pos
   end,
   
   -- ------------------------------------------
   -- MAP	name/value structures, value is pair count
   -- ------------------------------------------
   
-  function(_,pos,info,value)
-    if info < 28 then
-      return 'MAP',cbor5.unpacki(value),pos
-    elseif info == 31 then
-      return 'MAP',math.huge,pos
-    else
-      throw(pos,"MAP format %d not supported",info)
-    end
+  [0xA0] = function(packet,pos,info,value)
+    return 'MAP',value,pos
   end,
   
   -- ------------------------------------------
   -- TAG	tagged data
   -- ------------------------------------------
   
-  function(packet,pos,_,value,conv)
-    local value = cbor5.unpacki(value)
+  [0xC0] = function(packet,pos,info,value,conv)
     if TAG[value] then
       return TAG[value](packet,pos,value,conv)
     else
@@ -610,7 +581,7 @@ TYPES =
   -- EXTENDED	other (extended) values.
   -- ------------------------------------------
   
-  function(packet,pos,info,value)
+  [0xE0] = function(packet,pos,info,value)
     if EXTENDED[info] then
       return EXTENDED[info](packet,pos,value)
     else
@@ -633,42 +604,10 @@ TYPES =
 
 function decode1(packet,pos,conv)
   local pos = pos or 1
-
-  local function readvalue(pos)
-    local byte = packet:sub(pos):byte()
-    local type = math.floor(byte / 32) + 1
-    local info = byte % 32
-    local value
-    
-    pos = pos + 1
-    
-    if info == 24 then
-      value = packet:sub(pos,pos)
-      pos = pos + 1
-    elseif info == 25 then
-      value = packet:sub(pos,pos+1)
-      pos = pos + 2
-    elseif info == 26 then
-      value = packet:sub(pos,pos+3)
-      pos = pos + 4
-    elseif info == 27 then
-      value = packet:sub(pos,pos+7)
-      pos   = pos + 8
-    else
-      value = string.char(info)
-    end
-    
-    if pos > #packet + 1 then
-      error "bad input"
-    end
-    
-    return type,info,value,pos
-  end
-  
-  local okay,type,info,value,npos = pcall(readvalue,pos)
+  local okay,type,info,value,npos = pcall(cbor5.decode,packet,pos)
   
   if not okay then
-    error { pos = pos , msg = "unexpected end of input" }
+    error { pos = pos , msg = type }
   end
   
   return TYPES[type](packet,npos,info,value,conv)

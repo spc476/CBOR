@@ -126,43 +126,46 @@ local UTF8 = (
 -- ***********************************************************************
 
 function UINT(n)
-  assert(n > -1)
-  return cbor5.packi(0,n)
+  return cbor5.encode(0x00,n)
 end
 
 -- ***********************************************************************
 
 function NINT(n)
-  assert(n < 0)
-  return cbor5.packi(0x20,-1 - n)
+  return cbor5.encode(0x20,-1 - n)
 end
 
 -- ***********************************************************************
 
 function BIN(b)
-  assert(type(b) == 'string')
-  return cbor5.packi(0x40,#b) .. b
+  if not b then
+    return "\95"
+  else
+    return cbor5.encode(0x40,#b) .. b
+  end
 end
 
 -- ***********************************************************************
 
 function TEXT(s)
-  assert(UTF8:match(s) > #s)
-  return cbor5.packi(0x60,#s) .. s
+  if not s then
+    return "\127"
+  else
+    assert(UTF8:match(s) > #s)
+    return cbor5.encode(0x60,#s) .. s
+  end
 end
 
 -- ***********************************************************************
 
 function ARRAY(array)
-  if type(array) == 'number' then
-    if array == math.huge then
-      return "\159"
-    else
-      return cbor5.packi(0x80,array)
-    end
+  if not array then
+    return "\159"
+  elseif type(array) == 'number' then
+    return cbor5.encode(0x80,array)
   end
   
-  local res = cbor5.packi(0x80,#array)
+  local res = cbor5.encode(0x80,#array)
   for _,item in ipairs(array) do
     res = res .. encode(item)
   end
@@ -172,12 +175,10 @@ end
 -- ***********************************************************************
 
 function MAP(map)
-  if type(map) == 'number' then
-    if map == math.huge then
-      return "\191"
-    else
-      return cbor5.packi(0xA0,map)
-    end
+  if not map then
+    return "\191"
+  elseif type(map) == 'number' then
+    return cbor5.encode(0xA0,map)
   end
   
   local res = ""
@@ -187,7 +188,7 @@ function MAP(map)
     res = res .. encode(value)
     cnt = cnt + 1
   end
-  return cbor5.packi(0xA0,cnt) .. res
+  return cbor5.encode(0xA0,cnt) .. res
 end
 
 -- ***********************************************************************
@@ -195,20 +196,20 @@ end
 TAG = setmetatable(
   {
     _datetime = function(value)
-      return cbor5.packi(0xC0,0) .. TEXT(value)
+      return cbor5.encode(0xC0,0) .. TEXT(value)
     end,
     
     _epoch = function(value)
       assert(type(value) == 'number',"_epoch exepcts a number")
-      return cbor5.packi(0xC0,1) .. encode(value)
+      return cbor5.encode(0xC0,1) .. encode(value)
     end,
     
     _pbignum = function(value)
-      return cbor5.packi(0xC0,2) .. BIN(value)
+      return cbor5.encode(0xC0,2) .. BIN(value)
     end,
     
     _nbignum = function(value)
-      return cbor5.packi(0xC0,3) .. BIN(value)
+      return cbor5.encode(0xC0,3) .. BIN(value)
     end,
     
     _decimalfraction = function(value)
@@ -217,7 +218,7 @@ TAG = setmetatable(
       assert(type(value[1]) == 'number',"_decimalfraction expects number as first element")
       assert(type(value[2]) == 'number',"_decimalfraction expects number as second element")
       
-      return cbor5.packi(0xC0,4) .. ARRAY(value)
+      return cbor5.encode(0xC0,4) .. ARRAY(value)
     end,
     
     _bigfloat = function(value)
@@ -226,47 +227,47 @@ TAG = setmetatable(
       assert(type(value[1])      == 'number', "_bigfloat expects a number as first element")
       assert(math.type(value[2]) == 'integer',"_bigfloat expecta an integer as second element")
       
-      return cbor5.packi(0xC0,5) .. ARRAY(value)
+      return cbor5.encode(0xC0,5) .. ARRAY(value)
     end,
     
     _tobase64url = function(value)
-      return cbor5.packi(0xC0,21) .. encode(value)
+      return cbor5.encode(0xC0,21) .. encode(value)
     end,
     
     _tobase64 = function(value)
-      return cbor5.packi(0xC0,22) .. encode(value)
+      return cbor5.encode(0xC0,22) .. encode(value)
     end,
     
     _tobase16 = function(value)
-      return cbor5.packi(0xC0,23) .. encode(value)
+      return cbor5.encode(0xC0,23) .. encode(value)
     end,
     
     _cbor = function(value)
-      return cbor5.packi(0xC0,24) .. BIN(value)
+      return cbor5.encode(0xC0,24) .. BIN(value)
     end,
     
     _url = function(value)
-      return cbor5.packi(0xC0,32) .. TEXT(value)
+      return cbor5.encode(0xC0,32) .. TEXT(value)
     end,
     
     _base64url = function(value)
-      return cbor5.packi(0xC0,33) .. TEXT(value)
+      return cbor5.encode(0xC0,33) .. TEXT(value)
     end,
     
     _base64 = function(value)
-      return cbor5.packi(0xC0,34) .. TEXT(value)
+      return cbor5.encode(0xC0,34) .. TEXT(value)
     end,
     
     _regex = function(value)
-      return cbor5.packi(0xC0,35) .. TEXT(value)
+      return cbor5.encode(0xC0,35) .. TEXT(value)
     end,
     
     _mime = function(value)
-      return cbor5.packi(0xC0,36) .. TEXT(value)
+      return cbor5.encode(0xC0,36) .. TEXT(value)
     end,
 
     _magic_cbor = function()
-      return cbor5.packi(0xC0,55799)
+      return cbor5.encode(0xC0,55799)
     end,
 
     -- ------------------------------------------------------
@@ -298,7 +299,7 @@ TAG = setmetatable(
     end,
     
     _uuid = function(value) -- extension
-      return cbor5.packi(0xC0,37) .. BIN(value)
+      return cbor5.encode(0xC0,37) .. BIN(value)
     end,
     
     _langstring = function()
@@ -336,7 +337,7 @@ TAG = setmetatable(
       end
       
       return function(value)
-        return cbor5.packi(0xC0,key) .. encode(value)
+        return cbor5.encode(0xC0,key) .. encode(value)
       end
     end
   }
@@ -351,7 +352,7 @@ EXTENDED =
   end,
   
   ['true'] = function()
-    return '\245'
+    return "\245"
   end,
   
   null = function()
@@ -363,21 +364,15 @@ EXTENDED =
   end,
   
   half = function(h)
-    local res = cbor5.packf(h)
-    assert(#res == 3)
-    return res
+    return cbor5.encode(0xE0,25,h)
   end,
   
   single = function(s)
-    local res = cbor5.packf(s)
-    assert(#res == 5)
-    return res
+    return cbor5.encode(0xE0,26,s)
   end,
   
   double = function(d)
-    local res = cbor5.packf(d)
-    assert(#res == 9)
-    return res
+    return cbor5.encode(0xE0,27,d)
   end,
   
   __break = function()
@@ -434,13 +429,13 @@ __ENCODE_MAP =
   
   ['number'] = function(value)
     if math.type(value) == 'integer' then
-      if value >= 0 then
-        return UINT(value)
-      else
+      if value < 0 then
         return NINT(value)
+      else
+        return UINT(value)
       end
     else
-      return cbor5.packf(value)
+      return cbor5.encode(0xE0,nil,value)
     end
   end,
   
