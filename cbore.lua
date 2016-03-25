@@ -32,7 +32,8 @@
 --			* TEXT		UTF-8 string	(Lua string)
 --			* ARRAY		value is item count (Lua number)
 --			* MAP		value is item count (Lua number)
---			*** extended types
+--			*** simple types
+--			* simple	SEE NOTES       (Lua number)
 --			* false		false value	(Lua false)
 --			* true		true value	(Lua true)
 --			* null		NULL value	(Lua nil)
@@ -78,8 +79,10 @@
 --		data (any) decoded CBOR data
 --		pos (integer) position parsing stopped
 --
--- NOTES:	The __break type is used to indicate the end of an indefinite
---		array or map.
+-- NOTES:	The simple type is returned for non-defined simple types.
+--		
+--		The __break type is used to indicate the end of an
+--		indefinite array or map.
 --
 -- ********************************************************************
 
