@@ -1,18 +1,10 @@
-dump  = require "org.conman.table".dump
-cbor5 = require "cbor5"
-DISP  = true
+dump       = require "org.conman.table".dump
+safestring = require "org.conman.table".safestring
+cbor       = require "cbor"
+cbore      = require "cbore"
+DISP       = true
 
-TYPES =
-{
-  UINT     = 0x00,
-  NINT     = 0x20,
-  BIN      = 0x40,
-  TEXT     = 0x60,
-  ARRAY    = 0x80,
-  MAP      = 0xA0,
-  TAG      = 0xC0,
-  EXTENDED = 0xE0
-}
+-- ***********************************************************************
 
 local function hextobin(s)
   local bin = ""
@@ -22,16 +14,21 @@ local function hextobin(s)
   return bin
 end
 
-local function test(tart,src,target,disp)
-  local t,info,val,pos = cbor5.decode(hextobin(src),1)
+-- ***********************************************************************
 
-  if t == 0x20 then val = -1 - val end
-  
+local function test(tart,src,target,disp)
+  local t,val = cbor.decode(hextobin(src),1)
+
   if disp or DISP then
-    print(tart,target,t,val,pos)
+    if tart == 'TEXT' or tart == 'BIN' then
+      local starget = safestring(target)
+      print(tart,safestring(target),t,safestring(val))
+    else
+      print(tart,target,t,val)
+    end
   end
   
-  assert(TYPES[tart] == t)
+  assert(tart == t)
   
   if type(target) == 'function' then
     assert(target(val))
@@ -40,6 +37,11 @@ local function test(tart,src,target,disp)
   end
 end
 
+-- ***********************************************************************
+
+test('false',"F4",false)
+test('true',"F5",true)
+test('null',"F6",nil)
 test('UINT',"00",0)
 test('UINT',"01",1)
 test('UINT',"0A",10)
@@ -51,5 +53,7 @@ test('UINT',"1903e8",1000)
 test('UINT',"1a000f4240",1000000)
 test('UINT',"1b000000e8d4a51000",1000000000000)
 test('NINT',"21",-2)
---test('TEXT',"6161","a")
---test('TEXT',"6449455446","IETF")
+test('TEXT',"6161","a")
+test('TEXT',"6449455446","IETF")
+test('BIN',"450001020304","\0\1\2\3\4")
+
