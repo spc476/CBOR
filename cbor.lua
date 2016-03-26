@@ -380,14 +380,9 @@ TYPE =
   -- =====================================================================
   
   [0xC0] = function(packet,pos,_,value)
-    if TAG[value] then
-      return TAG[value](packet,pos)
-    else
-      local _,newvalue,npos = decode(packet,pos)
-      return string.format("tag_%d",value),newvalue,npos
-    end
+    return TAG[value](packet,pos)
   end,
-  
+
   -- =====================================================================
   
   [0xE0] = function(_,pos,info,value)
@@ -795,11 +790,17 @@ TAG = setmetatable(
     
     [22098] = function(_,pos)
       return '_indirection',nil,pos
-    end,      
+    end,    
   },
   {
     __index = function(_,key)
-      if type(key) == 'string' then
+      if type(key) == 'number' then
+        return function(packet,pos)
+          local _,value,npos = decode(packet,pos)
+          return string.format('tag_%d',key),value,npos
+        end
+        
+      elseif type(key) == 'string' then
         return function(value)
           return cbor5.encode(0xC0,key) .. encode(value)
         end
