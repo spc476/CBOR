@@ -386,11 +386,7 @@ TYPE =
   -- =====================================================================
   
   [0xE0] = function(_,pos,info,value)
-    if SIMPLE[info] then
-      return SIMPLE[info](pos,value)
-    else
-      return 'simple',value,pos
-    end
+    return SIMPLE[info](pos,value)
   end,
 }
 
@@ -923,7 +919,12 @@ SIMPLE = setmetatable(
   },
   {
     __index = function(_,key)
-      if type(key) == 'string' then
+      if type(key) == 'number' then
+        return function(pos,value)
+          return 'simple',value,pos
+        end
+        
+      elseif type(key) == 'string' then
         return function()
           cbor5.encode(0xE0,key)
         end
