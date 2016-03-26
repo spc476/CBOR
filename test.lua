@@ -77,7 +77,7 @@ assert(compare({1,2,3},{1,2,3}))
 
 function roundtrip(v)
   local e = cbor.encode(v)
-  local _,d,p,f = cbor.decode(e)
+  local _,d,_ = cbor.decode(e)
   return compare(v,d)
 end
 
@@ -97,7 +97,6 @@ local function test(tart,src,target,disp,bad,badrt)
       if UTF8:match(target) > #target then
         print(tart,target,t,val,xx)
       else
-        local starget = safestring(target)
         print(tart,safestring(target),t,safestring(val),xx)
       end
     else
