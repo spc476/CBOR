@@ -200,12 +200,12 @@ static int cbor5lua_encode468A(lua_State *L)
 *		value2 (number/optional) possible float to encode
 * return:	blob (binary) CBOR encoded value
 *
-* note:		This is expected to be called to encode a CBOR extended (or
-*		simple) type (0xE0).  If value and value1 are nil, then the
-*		__break extended type is encoded; if value is nil and value1
-*		exists, then the floating point value1 is encoded using the
-*		best size fo the encoding.  If value is 25 (_half), 26
-*		(_single) or 27 (_double) then value1 is encoded.
+* note:		This is expected to be called to encode a CBOR simple type
+*		(0xE0).  If value and value2 are nil, then the __break
+*		simple type is encoded; if value is nil and value2 exists,
+*		then the floating point value2 is encoded using the best
+*		size fo the encoding.  If value is 25 (half), 26 (single) or
+*		27 (double) then value2 is encoded.
 *
 * note:		Throws on invalid parameters or if float encoding will lose
 *		precision.
@@ -299,7 +299,7 @@ static int cbor5lua_encodeE(lua_State *L)
 * Return:	blob (binary) CBOR encoded value
 *
 * Note:		value is optional for type of 0xE0.
-*		value1 is optional for type of 0xE0; otherwise it's ignored.
+*		value2 is optional for type of 0xE0; otherwise it's ignored.
 *******************************************************************/
 
 static int cbor5lua_encode(lua_State *L)
