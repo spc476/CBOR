@@ -369,9 +369,9 @@ TYPE =
     for _ = 1 , value do
       local nctype,nvalue,npos = decode(packet,pos,conv,ref,true)
       if nctype == '__break' then return 'MAP',acc,npos end
-      local _,vvalue,npos = decode(packet,npos,conv,ref)
+      local _,vvalue,npos2 = decode(packet,npos,conv,ref)
       acc[nvalue] = vvalue
-      pos         = npos
+      pos         = npos2
     end
     return 'MAP',acc,pos
   end,
