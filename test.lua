@@ -24,7 +24,6 @@ lpeg       = require "lpeg"
 dump       = require "org.conman.table".dump
 safestring = require "org.conman.table".safestring
 cbor       = require "cbor"
-cbore      = require "cbore"
 DISP       = false
 
 -- ***********************************************************************
@@ -76,7 +75,7 @@ assert(compare({1,2,3},{1,2,3}))
 -- ***********************************************************************
 
 function roundtrip(v)
-  local e = cbore.encode(v)
+  local e = cbor.encode(v)
   local _,d,p,f = cbor.decode(e)
   return compare(v,d)
 end
