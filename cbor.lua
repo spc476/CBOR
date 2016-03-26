@@ -269,7 +269,8 @@ TYPE =
     return cbor5.encode(0x00,n)
   end,
   
-  [0x00] = function(_,pos,_,value)
+  [0x00] = function(_,pos,info,value)
+    if info == 31 then throw(pos,"invalid data") end
     return 'UINT',value,pos
   end,
   
@@ -279,7 +280,8 @@ TYPE =
     return cbor5.encode(0x20,-1 - n)
   end,
   
-  [0x20] = function(_,pos,_,value)
+  [0x20] = function(_,pos,info,value)
+    if info == 31 then throw(pos,"invalid data") end
     return 'NINT',-1 - value,pos
   end,
   
@@ -375,7 +377,8 @@ TYPE =
   
   -- =====================================================================
   
-  [0xC0] = function(packet,pos,_,value,conv,ref)
+  [0xC0] = function(packet,pos,info,value,conv,ref)
+    if info == 31 then throw(pos,"invalid data") end
     return TAG[value](packet,pos,conv,ref)
   end,
 
