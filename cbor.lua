@@ -179,19 +179,20 @@ function isfloat(type)
 end  
 
 -- ***********************************************************************
--- usage:	ctype2,value2,pos2 = bintext(packet,pos,info,value,ctype)
+-- usage:	ctype2,value2,pos2 = bintext(packet,pos,info,value,conv,ctype)
 -- desc:	Decode a CBOR BIN or CBOR TEXT into a Lua string
 -- input:	packet (binary) binary blob
 --		pos (integer) byte position in packet
 --		info (integer) CBOR info value (0..31)
 --		value (integer) string length
+--		conv (table) conversion routines (passed to decode())
 --		ctype (string) 'BIN' or 'TEXT'
 -- return:	ctype2 (string) 'BIN' or 'TEXT'
 --		value2 (string) string from packet
 --		pos2 (integer) position past string just extracted
 -- ***********************************************************************
 
-local function bintext(packet,pos,info,value,ctype)
+local function bintext(packet,pos,info,value,conv,ctype)
   if info < 31 then
     local data = packet:sub(pos,pos + value - 1)
     return ctype,data,pos + value
@@ -200,7 +201,7 @@ local function bintext(packet,pos,info,value,ctype)
     local t,nvalue
     
     while true do
-      t,nvalue,pos = decode(packet,pos)
+      t,nvalue,pos = decode(packet,pos,conv)
       if t == '__break' then
         break;
       end
@@ -238,12 +239,13 @@ end
 --
 --		TAG and SIMPLE encoding are handled elsewhere.
 --
--- Usage:	ctype,value2,pos2 = cbor.TYPE[n](packet,pos,info,value)
+-- Usage:	ctype,value2,pos2 = cbor.TYPE[n](packet,pos,info,value,conv)
 -- Desc:	Decode a CBOR base type
 -- Input:	packet (binary) binary blob of CBOR data
 --		pos (integer) byte offset in packet to start parsing from
 --		info (integer) CBOR info (0 .. 31)
 --		value (integer) CBOR decoded value
+--		conv (table) conversion table (passed to decode())
 -- Return:	ctype (enum)
 --			* UINT
 --			* NINT
@@ -297,8 +299,8 @@ TYPE =
     end
   end,
   
-  [0x40] = function(packet,pos,info,value)
-    return bintext(packet,pos,info,value,'BIN')
+  [0x40] = function(packet,pos,info,value,conv)
+    return bintext(packet,pos,info,value,conv,'BIN')
   end,
   
   -- =====================================================================
@@ -312,8 +314,8 @@ TYPE =
     end
   end,
   
-  [0x60] = function(packet,pos,info,value)
-    return bintext(packet,pos,info,value,'TEXT')
+  [0x60] = function(packet,pos,info,value,conv)
+    return bintext(packet,pos,info,value,conv,'TEXT')
   end,
   
   -- =====================================================================
@@ -332,11 +334,11 @@ TYPE =
     return res
   end,
   
-  [0x80] = function(packet,pos,_,value)
+  [0x80] = function(packet,pos,_,value,conv)
     local acc = {}
     
     for i = 1 , value do
-      local ctype,avalue,npos = decode(packet,pos)
+      local ctype,avalue,npos = decode(packet,pos,conv)
       if ctype == '__break' then return 'ARRAY',acc,npos end
       acc[i] = avalue
       pos    = npos
@@ -365,12 +367,12 @@ TYPE =
     return cbor5.encode(0xA0,cnt) .. res
   end,
   
-  [0xA0] = function(packet,pos,_,value)
+  [0xA0] = function(packet,pos,_,value,conv)
     local acc = {}
     for _ = 1 , value do
-      local nctype,nvalue,npos = decode(packet,pos)
+      local nctype,nvalue,npos = decode(packet,pos,conv)
       if nctype == '__break' then return 'MAP',acc,npos end
-      local _,vvalue,npos = decode(packet,npos)
+      local _,vvalue,npos = decode(packet,npos,conv)
       acc[nvalue] = vvalue
       pos         = npos
     end
@@ -379,8 +381,8 @@ TYPE =
   
   -- =====================================================================
   
-  [0xC0] = function(packet,pos,_,value)
-    return TAG[value](packet,pos)
+  [0xC0] = function(packet,pos,_,value,conv)
+    return TAG[value](packet,pos,conv)
   end,
 
   -- =====================================================================
@@ -403,10 +405,11 @@ TYPE =
 --
 -- Note:	Some tags only support a subset of Lua types.
 --
--- Usage:	ctype,value,pos2 = cbor.TAG[n](packet,pos)
+-- Usage:	ctype,value,pos2 = cbor.TAG[n](packet,pos,conv)
 -- Desc:	Decode a CBOR tagged value
 -- Input:	packet (binary) binary blob of CBOR tagged data
 --		pos (integer) byte offset into packet
+--		conv (table) conversion routines (passed to decode())
 -- Return:	ctype (string) - lots of types can be returned
 --		value (any) decoded CBOR tagged value
 --		pos2 (integer) byte offset just past parsed data
@@ -419,8 +422,8 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,0) .. TYPE.TEXT(value)
     end,
     
-    [0] = function(packet,pos)
-      local ctype,value,npos = decode(packet,pos)
+    [0] = function(packet,pos,conv)
+      local ctype,value,npos = decode(packet,pos,conv)
       if type == 'TEXT' then
         return '_datetime',value,npos
       else
@@ -435,8 +438,8 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,1) .. encode(value)
     end,
     
-    [1] = function(packet,pos)
-      local ctype,value,npos = decode(packet,pos)
+    [1] = function(packet,pos,conv)
+      local ctype,value,npos = decode(packet,pos,conv)
       if isnumber(ctype) then
         return '_epoch',value,npos
       else
@@ -450,8 +453,8 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,2) .. TYPE.BIN(value)
     end,
     
-    [2] = function(packet,pos)
-      local ctype,value,npos = decode(packet,pos)
+    [2] = function(packet,pos,conv)
+      local ctype,value,npos = decode(packet,pos,conv)
       if ctype == 'BIN' then
         return '_pbignum',value,npos
       else
@@ -465,8 +468,8 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,3) .. TYPE.BIN(value)
     end,
     
-    [3] = function(packet,pos)
-      local ctype,value,npos = decode(packet,pos)
+    [3] = function(packet,pos,conv)
+      local ctype,value,npos = decode(packet,pos,conv)
       if ctype == 'BIN' then
         return '_nbignum',value,npos
       else
@@ -485,8 +488,8 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,4) .. TYPE.ARRAY(value)
     end,
     
-    [4] = function(packet,pos)
-      local ctype,value,npos = decode(packet,pos)
+    [4] = function(packet,pos,conv)
+      local ctype,value,npos = decode(packet,pos,conv)
       if ctype ~= 'ARRAY' then throw(pos,"_decimalfraction: wanted ARRAY, got %s",ctype) end
       if value ~= 2 then throw(pos,"_decimalfraction: wanted ARRAY[2], got ARRAY[%s]",value) end
       local result = {}
@@ -508,14 +511,14 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,5) .. TYPE.ARRAY(value)
     end,
       
-    [5] = function(packet,pos)
-      local ctype,value,npos = decode(packet,pos)
+    [5] = function(packet,pos,conv)
+      local ctype,value,npos = decode(packet,pos,conv)
       if ctype ~= 'ARRAY' then throw(pos,"_bigfloat: wanted ARRAY, got %s",ctype) end
       if value ~= 2 then throw(pos,"_bigfloat: watned ARRAY[2], got ARRAY[%s]",value) end
       local result = {}
-      ctype,result.exp,npos = decode(packet,pos)
+      ctype,result.exp,npos = decode(packet,pos,conv)
       if not isnumber(ctype) then throw(pos,"_bigfloat: wanted number for exp, got %s",ctype) end
-      ctype,result.mantissa,npos = decode(packet,pos)
+      ctype,result.mantissa,npos = decode(packet,pos,conv)
       if not isinteger(ctype) then throw(pos,"_bigfloat: wanted integer for mantissa, got %s",ctype) end
       return '_bigfloat',result,npos
     end,
@@ -526,8 +529,8 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,21) .. encode(value)
     end,
     
-    [21] = function(packet,pos)
-      local _,value,npos = decode(packet,pos)
+    [21] = function(packet,pos,conv)
+      local _,value,npos = decode(packet,pos,conv)
       return '_tobase64url',value,npos
     end,
     
@@ -537,8 +540,8 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,22) .. encode(value)
     end,
     
-    [22] = function(packet,pos)
-      local _,value,npos = decode(packet,pos)
+    [22] = function(packet,pos,conv)
+      local _,value,npos = decode(packet,pos,conv)
       return '_tobase64',value,npos
     end,
     
@@ -548,8 +551,8 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,23) .. ecode(value)
     end,
     
-    [23] = function(packet,pos)
-      local _,value,npos = decode(packet,pos)
+    [23] = function(packet,pos,conv)
+      local _,value,npos = decode(packet,pos,conv)
       return '_tobase16',value,npos
     end,
     
@@ -559,8 +562,8 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,24) .. TYPE.BIN(value)
     end,
     
-    [24] = function(packet,pos)
-      local ctype,value,npos = decode(packet,pos)
+    [24] = function(packet,pos,conv)
+      local ctype,value,npos = decode(packet,pos,conv)
       if ctype == 'BIN' then
         return '_cbor',value,npos
       else
@@ -574,8 +577,8 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,32) .. TYPE.TEXT(value)
     end,
     
-    [32] = function(packet,pos)
-      local ctype,value,npos = decode(packet,pos)
+    [32] = function(packet,pos,conv)
+      local ctype,value,npos = decode(packet,pos,conv)
       if ctype == 'TEXT' then
         return '_url',value,npos
       else
@@ -589,8 +592,8 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,33) .. TYPE.TEXT(value)
     end,
     
-    [33] = function(packet,pos)
-      local ctype,value,npos = decode(packet,pos)
+    [33] = function(packet,pos,conv)
+      local ctype,value,npos = decode(packet,pos,conv)
       if ctype == 'TEXT' then
         return '_base64url',value,npos
       else
@@ -604,8 +607,8 @@ TAG = setmetatable(
       return cbor5.encide(0xC0,34) .. TYPE.TEXT(value)
     end,
     
-    [34] = function(packet,pos)
-      local ctype,value,npos = decode(packet,pos)
+    [34] = function(packet,pos,conv)
+      local ctype,value,npos = decode(packet,pos,conv)
       if ctype == 'TEXT' then
         return '_base64',value,npos
       else
@@ -619,8 +622,8 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,35) .. TYPE.TEXT(value)
     end,
     
-    [35] = function(packet,pos)
-      local ctype,value,npos = decode(packet,pos)
+    [35] = function(packet,pos,conv)
+      local ctype,value,npos = decode(packet,pos,conv)
       if ctype == 'TEXT' then
         return '_regex',value,npos
       else
@@ -634,8 +637,8 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,36) .. TYPE.TEXT(value)
     end,
     
-    [36] = function(packet,pos)
-      local ctype,value,npos = decode(packet,pos)
+    [36] = function(packet,pos,conv)
+      local ctype,value,npos = decode(packet,pos,conv)
       if ctype == 'TEXT' then
         return '_mime',value,npos
       else
@@ -716,8 +719,8 @@ TAG = setmetatable(
       return cbor5.encode(0xC0,37) .. TYPE.BIN(value)
     end,
     
-    [37] = function(packet,pos)  
-      local ctype,value,npos = decode1(packet,pos)
+    [37] = function(packet,pos,conv)
+      local ctype,value,npos = decode(packet,pos,conv)
       if ctype == 'BIN' then
         return '_uuid',value,npos
       else
@@ -791,8 +794,8 @@ TAG = setmetatable(
   {
     __index = function(_,key)
       if type(key) == 'number' then
-        return function(packet,pos)
-          local _,value,npos = decode(packet,pos)
+        return function(packet,pos,conv)
+          local _,value,npos = decode(packet,pos,conv)
           return string.format('tag_%d',key),value,npos
         end
         
@@ -935,9 +938,9 @@ SIMPLE = setmetatable(
 
 -- ***********************************************************************
 
-local function decode1(packet,pos)
+local function decode1(packet,pos,conv)
   local ctype,info,value,npos = cbor5.decode(packet,pos)
-  return TYPE[ctype](packet,npos,info,value)
+  return TYPE[ctype](packet,npos,info,value,conv)
 end
 
 -- ***********************************************************************
@@ -948,12 +951,33 @@ end
 -- Return:	ctype (string) a CBOR type name
 --		value (any) the decoded CBOR data
 --		pos2 (integer) offset past decoded data
+--		conv (table) conversion routines (see note)
+--
+-- Note:	The conversion table should be constructed as:
+--
+--		{
+--		  UINT      = function(v) return munge(v) end,
+--		  _datetime = function(v) return munge(v) end,
+--		  _url      = function(v) return munge(v) end,,
+--		}
+--
+--		The keys are CBOR types (listed above).  These functions are
+--		expected to convert the decoded CBOR type into a more
+--		appropriate type for your code.  For instance, an _epoch
+--		can be converted into a table.
+--
 -- ***********************************************************************
 
-function decode(packet,pos)
-  local okay,ctype,value,npos = pcall(decode1,packet,pos or 1)
+function decode(packet,pos,conv)
+  pos  = pos  or 1
+  conv = conv or {}
+  
+  local okay,ctype,value,npos = pcall(decode1,packet,pos,conv)
   
   if okay then
+    if conv[ctype] then
+      value = conv[ctype](value)
+    end
     return ctype,value,npos
   else
     return '__error',ctype,pos
