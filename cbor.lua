@@ -85,6 +85,7 @@
 --		The __break type is used to indicate the end of an
 --		indefinite array or map.
 --
+-- luacheck: globals isnumber isinteger isfloat decode encode TYPE TAG SIMPLE _VERSION __ENCODE_MAP _ENV
 -- ********************************************************************
 
 local math     = require "math"
