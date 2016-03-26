@@ -139,7 +139,7 @@ local function throw(pos,...)
 end
 
 -- ***********************************************************************
--- Usage:       bool = cbor.isnumber(type)
+-- Usage:       bool = cbor.isnumber(ctype)
 -- Desc:        returns true of the given CBOR type is a number
 -- Input:       type (enum/cbor) CBOR type
 -- Return:      bool (boolean) true if number, false otherwise
@@ -154,28 +154,28 @@ function isnumber(ctype)
 end
 
 -- ***********************************************************************
--- Usage:       bool = cbor.isinteger(type)   
+-- Usage:       bool = cbor.isinteger(ctype)   
 -- Desc:        returns true if the given CBOR type is an integer
--- Input:       type (enum/cbor) CBOR type
+-- Input:       ctype (enum/cbor) CBOR type
 -- Return:      bool (boolean) true if number, false othersise
 -- ***********************************************************************
 
-function isinteger(type)
-  return type == 'UINT'
-      or type == 'NINT'
+function isinteger(ctype)
+  return ctype == 'UINT'
+      or ctype == 'NINT'
 end
 
 -- ***********************************************************************
--- Usage:       bool = cbor.isfloat(type)
+-- Usage:       bool = cbor.isfloat(ctype)
 -- Desc:        returns true if the given CBOR type is a float
--- Input:       type (enum/cbor) CBOR type
+-- Input:       ctype (enum/cbor) CBOR type
 -- Return:      bool (boolean) true if number, false otherwise
 -- ***********************************************************************
 
-function isfloat(type)
-  return type == 'half'
-      or type == 'single'
-      or type == 'double'
+function isfloat(ctype)
+  return ctype == 'half'
+      or ctype == 'single'
+      or ctype == 'double'
 end  
 
 -- ***********************************************************************
@@ -186,8 +186,8 @@ end
 --		info (integer) CBOR info value (0..31)
 --		value (integer) string length
 --		conv (table) conversion routines (passed to decode())
---		ctype (string) 'BIN' or 'TEXT'
--- return:	ctype2 (string) 'BIN' or 'TEXT'
+--		ctype (enum/cbor) 'BIN' or 'TEXT'
+-- return:	ctype2 (enum/cbor) 'BIN' or 'TEXT'
 --		value2 (string) string from packet
 --		pos2 (integer) position past string just extracted
 -- ***********************************************************************
@@ -246,15 +246,7 @@ end
 --		info (integer) CBOR info (0 .. 31)
 --		value (integer) CBOR decoded value
 --		conv (table) conversion table (passed to decode())
--- Return:	ctype (enum)
---			* UINT
---			* NINT
---			* BIN
---			* TEXT
---			* ARAAY
---			* MAP
---			* tag_* (see notes)
---			* simple (see notes)
+-- Return:	ctype (enum/cbor) CBOR deocded type
 --		value2 (any) decoded CBOR value
 --		pos2 (integer) byte offset just past parsed data
 --
@@ -410,7 +402,7 @@ TYPE =
 -- Input:	packet (binary) binary blob of CBOR tagged data
 --		pos (integer) byte offset into packet
 --		conv (table) conversion routines (passed to decode())
--- Return:	ctype (string) - lots of types can be returned
+-- Return:	ctype (enum/cbor) CBOR type of value
 --		value (any) decoded CBOR tagged value
 --		pos2 (integer) byte offset just past parsed data
 --
@@ -831,7 +823,7 @@ TAG = setmetatable(
 -- Desc:	Decode a CBOR simple type
 -- Input:	pos (integer) byte offset in packet
 --		value (number/optional) floating point number
--- Return:	ctype (string) a simple type
+-- Return:	ctype (enum/cbor) CBOR type of value
 --		value2 (any) decoded value as Lua value
 --		pos (integer) original pos passed in (see notes)
 --
@@ -948,7 +940,7 @@ end
 -- Desc:	Decode CBOR encoded data
 -- Input:	packet (binary) CBOR binary blob
 --		pos (integer) starting point for decoding
--- Return:	ctype (string) a CBOR type name
+-- Return:	ctype (enum/cbor) CBOR type of value
 --		value (any) the decoded CBOR data
 --		pos2 (integer) offset past decoded data
 --		conv (table) conversion routines (see note)
