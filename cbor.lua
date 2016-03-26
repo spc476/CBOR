@@ -179,6 +179,17 @@ function isfloat(type)
 end  
 
 -- ***********************************************************************
+-- usage:	ctype2,value2,pos2 = bintext(packet,pos,info,value,ctype)
+-- desc:	Decode a CBOR BIN or CBOR TEXT into a Lua string
+-- input:	packet (binary) binary blob
+--		pos (integer) byte position in packet
+--		info (integer) CBOR info value (0..31)
+--		value (integer) string length
+--		ctype (string) 'BIN' or 'TEXT'
+-- return:	ctype2 (string) 'BIN' or 'TEXT'
+--		value2 (string) string from packet
+--		pos2 (integer) position past string just extracted
+-- ***********************************************************************
 
 local function bintext(packet,pos,info,value,ctype)
   if info < 31 then
@@ -204,7 +215,56 @@ local function bintext(packet,pos,info,value,ctype)
 end
 
 -- ***********************************************************************
--- CBOR base TYPES
+--
+--                             CBOR base TYPES
+--
+-- Both encoding and decoding functions for CBOR base types are here.
+--
+-- Usage:	blob = cbor.TYPE['name'](n)
+-- Desc:	Encode a CBOR base type
+-- Input:	n (integer string table) Lua type (see notes)
+-- Return:	blob (binary) CBOR encoded value
+--
+-- Note:	UINT and NINT take an integer.
+--
+--		BIN and TEXT take a string.  TEXT will check to see if
+--		the text is well formed UTF8 and throw an error if the
+--		text is not valid UTF8.
+--
+--		ARRAY and MAP take a table of an appropriate type. No
+--		checking is done of the passed in table, so a table
+--		of just name/value pairs passed in to ARRAY will return
+--		an empty CBOR encoded array.
+--
+--		TAG and SIMPLE encoding are handled elsewhere.
+--
+-- Usage:	ctype,value2,pos2 = cbor.TYPE[n](packet,pos,info,value)
+-- Desc:	Decode a CBOR base type
+-- Input:	packet (binary) binary blob of CBOR data
+--		pos (integer) byte offset in packet to start parsing from
+--		info (integer) CBOR info (0 .. 31)
+--		value (integer) CBOR decoded value
+-- Return:	ctype (enum)
+--			* UINT
+--			* NINT
+--			* BIN
+--			* TEXT
+--			* ARAAY
+--			* MAP
+--			* tag_* (see notes)
+--			* simple (see notes)
+--		value2 (any) decoded CBOR value
+--		pos2 (integer) byte offset just past parsed data
+--
+-- Note:	tag_* is returned for any non-supported TAG types.  The
+--		actual format is 'tag_' <integer value>---for example,
+--		'tag_1234567890'.  Supported TAG types will return the
+--		appropriate type name.
+--
+--		simple is returned for any non-supported SIMPLE types. 
+--		Supported simple types will return the appropriate type
+--		name.
+--
 -- ***********************************************************************
 
 TYPE =
@@ -340,7 +400,26 @@ TYPE =
 }
 
 -- ***********************************************************************
--- CBOR TAG values
+--
+--                             CBOR TAG values
+--
+-- Encoding and decoding of CBOR TAG types are here.
+--
+-- Usage:	blob = cbor.TAG['name'](value)
+-- Desc:	Encode a CBOR tagged value
+-- Input:	value (any) any Lua type
+-- Return:	blob (binary) CBOR encoded tagged value
+--
+-- Note:	Some tags only support a subset of Lua types.
+--
+-- Usage:	ctype,value,pos2 = cbor.TAG[n](packet,pos)
+-- Desc:	Decode a CBOR tagged value
+-- Input:	packet (binary) binary blob of CBOR tagged data
+--		pos (integer) byte offset into packet
+-- Return:	ctype (string) - lots of types can be returned
+--		value (any) decoded CBOR tagged value
+--		pos2 (integer) byte offset just past parsed data
+--
 -- ***********************************************************************
 
 TAG = setmetatable(
@@ -730,7 +809,35 @@ TAG = setmetatable(
 )
 
 -- ***********************************************************************
--- CBOR SIMPLE data types
+--
+--                         CBOR SIMPLE data types
+--
+-- Encoding and decoding of CBOR simple types are here.
+--
+-- Usage:	blob = cbor.SIMPLE['name'](n)
+-- Desc:	Encode a CBOR simple type
+-- Input:	n (number/optional) floating point number to encode (see notes)
+-- Return:	blob (binary) CBOR encoded simple type
+--
+-- Note:	Some functions ignore the passed in parameter.  
+--
+--		WARNING! The functions that do not ignore the parameter may
+--		throw an error if floating point precision will be lost
+--		during the encoding.  Please be aware of what you are doing
+--		when calling SIMPLE.half(), SIMPLE.float() or
+--		SIMPLE.double().
+--
+-- Usage:	ctype,value2,pos = cbor.SIMPLE[n](pos,value)
+-- Desc:	Decode a CBOR simple type
+-- Input:	pos (integer) byte offset in packet
+--		value (number/optional) floating point number
+-- Return:	ctype (string) a simple type
+--		value2 (any) decoded value as Lua value
+--		pos (integer) original pos passed in (see notes)
+--
+-- Note:	The pos parameter is passed in to avoid special cases in
+--		the code and to conform to all other decoding routines.
+--
 -- ***********************************************************************
 
 SIMPLE = setmetatable(
@@ -832,6 +939,14 @@ local function decode1(packet,pos)
 end
 
 -- ***********************************************************************
+-- Usage:	ctype,value,pos2 = cbor.decode(packet,pos)
+-- Desc:	Decode CBOR encoded data
+-- Input:	packet (binary) CBOR binary blob
+--		pos (integer) starting point for decoding
+-- Return:	ctype (string) a CBOR type name
+--		value (any) the decoded CBOR data
+--		pos2 (integer) offset past decoded data
+-- ***********************************************************************
 
 function decode(packet,pos)
   local okay,ctype,value,npos = pcall(decode1,packet,pos or 1)
@@ -877,6 +992,28 @@ local function generic(v)
 end
 
 -- ***********************************************************************
+--
+--                              __ENCODE_MAP
+--
+-- A table of functions to map Lua values to CBOR encoded values.  nil,
+-- boolean, number and string are handled directly (if a Lua string is valid
+-- UTF8, then it's encoded as a CBOR TEXT.
+--
+-- For the other four types, only tables are directly supported without
+-- metatable support.  If a metatable does exist, if the method '__tocbor'
+-- is defined, that function is called and the results returned.  If '__len'
+-- is defined, then it is mapped as a CBOR ARRAY.  For Lua 5.2, if
+-- '__ipairs' is defined, then it too, is mapped as a CBOR ARRAY.  If Lua
+-- 5.2 or higher and '__pairs' is defined, then it's mapped as a CBOR MAP.
+--
+-- Otherwise, an error is thrown.
+--
+-- Usage:	blob = cbor.__ENCODE_MAP[luatype](value)
+-- Desc:	Encode a Lua type into a CBOR type
+-- Input:	value (any) a Lua value who's type matches luatype.
+-- Return:	blob (binary) CBOR encoded data
+--
+-- ***********************************************************************
 
 __ENCODE_MAP =
 {
@@ -916,6 +1053,11 @@ __ENCODE_MAP =
   ['thread']   = generic,
 }
 
+-- ***********************************************************************
+-- Usage:	blob = cbor.encode(value)
+-- Desc:	Encode a Lua type into a CBOR type
+-- Input:	value (any) 
+-- Return:	blob (binary) CBOR encoded value
 -- ***********************************************************************
 
 function encode(value)
