@@ -19,7 +19,9 @@
 --
 -- ***************************************************************
 
+ddt        = require "org.conman.debug"
 lpeg       = require "lpeg"
+dump       = require "org.conman.table".dump
 safestring = require "org.conman.table".safestring
 cbor       = require "cbor"
 cbore      = require "cbore"
@@ -103,7 +105,7 @@ local function test(tart,src,target,disp,bad,badrt)
     end
   end
   
-  assert(tart == t)
+  assert(tart == t,string.format("FAILED type: %s %s",tart,t))
   
   if not bad then
     if type(target) == 'function' then
@@ -113,13 +115,17 @@ local function test(tart,src,target,disp,bad,badrt)
       and target ~= target and val ~= val then
         assert(true)
       else
-        assert(compare(val,target))
+        if disp then
+          dump("val",val)
+          dump("target",target)
+        end
+        assert(compare(val,target),string.format("Failed D: %s %s",tart,src))
       end
     end
   end 
   
   if not badrt then
-    assert(roundtrip(target))
+    assert(roundtrip(target),string.format("Failed RT: %s %s",tart,src))
   end
 end
 
@@ -212,4 +218,4 @@ test('MAP',"bf6346756ef563416d7421ff",{ Fun = true , Amt = -2 })
 -- other tests
 -- ***********************************************************************
 
-test('tag-1234567890',"DA499602D200",0)
+test('tag_1234567890',"DA499602D200",0)
