@@ -79,7 +79,7 @@ static void cbor5L_pushvalueN(
           || ((len == 8) && ((typeinfo & 0x1F) == 27))
         );
   
-  for (uint8_t b = value & 255 ; len ; b = (value >>= 8) & 255 , len--)
+  for (uint8_t b = (uint8_t)value ; len > 0 ; b = (uint8_t)(value >>= 8) , len--)
     result.b[--idx] = b;
   
   result.b[--idx] = typeinfo;
