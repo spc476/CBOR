@@ -19,7 +19,7 @@
 #
 ########################################################################
 
-.PHONY:	clean
+.PHONY:	clean check
 
 VERSION = $(shell git describe --tag)
 
@@ -34,6 +34,9 @@ override CFLAGS += -shared -fPIC -DVERSION='"$(VERSION)"'
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 cbor5.so : cbor5.o dnf.o
+
+check:
+	luacheck cbor.lua test.lua
 
 clean:
 	$(RM) *~ *.so *.o
