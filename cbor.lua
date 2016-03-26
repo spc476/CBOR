@@ -244,7 +244,7 @@ TAG =
   [0] = function(packet,pos)
     local ctype,value,npos = decode(packet,pos)
     if type == 'TEXT' then
-      return '_datetime',value,pos
+      return '_datetime',value,npos
     else
       throw(pos,"_datetime: wanted TEXT, got %s",ctype)
     end
