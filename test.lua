@@ -171,9 +171,9 @@ test('false',"F4",false)
 test('true',"F5",true)
 test('null',"F6",nil)
 test('undefined',"F7",nil)
-test('simple',"F0",16)
-test('simple',"f818",24)
-test('simple',"F8FF",255)
+test('SIMPLE',"F0",16)
+test('SIMPLE',"f818",24)
+test('SIMPLE',"F8FF",255)
 test('_epoch',"c11a514b67b0",1363896240)
 test('_epoch',"c1fb41d452d9ec200000",1363896240.5)
 test('_tobase16',"d74401020304","\1\2\3\4") 	-- RFC wrong here
@@ -217,4 +217,4 @@ test('MAP',"bf6346756ef563416d7421ff",{ Fun = true , Amt = -2 })
 -- other tests
 -- ***********************************************************************
 
-test('tag_1234567890',"DA499602D200",0)
+test('TAG_1234567890',"DA499602D200",0)

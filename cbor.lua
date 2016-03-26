@@ -33,7 +33,7 @@
 --			* ARRAY		value is item count (Lua number)
 --			* MAP		value is item count (Lua number)
 --			*** simple types
---			* simple	SEE NOTES       (Lua number)
+--			* SIMPLE	SEE NOTES       (Lua number)
 --			* false		false value	(Lua false)
 --			* true		true value	(Lua true)
 --			* null		NULL value	(Lua nil)
@@ -43,7 +43,7 @@
 --			* double	double precision IEEE 754 float
 --			* __break	SEE NOTES
 --			*** tagged types
---			* tag_*		unsupported tag type (Lua number)
+--			* TAG_*		unsupported tag type (Lua number)
 --			* _datetime	datetime (TEXT)
 --			* _epoch	see cbor.isnumber()
 --			* _pbignum	positive bignum (BIN)
@@ -796,7 +796,7 @@ TAG = setmetatable(
       if type(key) == 'number' then
         return function(packet,pos,conv)
           local _,value,npos = decode(packet,pos,conv)
-          return string.format('tag_%d',key),value,npos
+          return string.format('TAG_%d',key),value,npos
         end
         
       elseif type(key) == 'string' then
@@ -924,7 +924,7 @@ SIMPLE = setmetatable(
     __index = function(_,key)
       if type(key) == 'number' then
         return function(pos,value)
-          return 'simple',value,pos
+          return 'SIMPLE',value,pos
         end
         
       elseif type(key) == 'string' then
