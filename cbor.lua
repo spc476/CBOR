@@ -514,9 +514,9 @@ TAG = setmetatable(
       if ctype ~= 'ARRAY' then throw(pos,"_bigfloat: wanted ARRAY, got %s",ctype) end
       if value ~= 2 then throw(pos,"_bigfloat: watned ARRAY[2], got ARRAY[%s]",value) end
       local result = {}
-      ctype,result.exp,npos = decode(packet,pos,conv,ref)
+      ctype,result.exp,npos = decode(packet,npos,conv,ref)
       if not isnumber(ctype) then throw(pos,"_bigfloat: wanted number for exp, got %s",ctype) end
-      ctype,result.mantissa,npos = decode(packet,pos,conv,ref)
+      ctype,result.mantissa,npos = decode(packet,npos,conv,ref)
       if not isinteger(ctype) then throw(pos,"_bigfloat: wanted integer for mantissa, got %s",ctype) end
       return '_bigfloat',result,npos
     end,
@@ -546,7 +546,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _tobase16 = function(value)
-      return cbor5.encode(0xC0,23) .. ecode(value)
+      return cbor5.encode(0xC0,23) .. encode(value)
     end,
     
     [23] = function(packet,pos,conv,ref)
