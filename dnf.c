@@ -101,7 +101,7 @@ int dnf_fromhalf(dnf__s *const pv,unsigned short int h)
   ; Isolate the sign bit, the exponent and the fraction.
   ;--------------------------------------------------------*/
   
-  pv->sign =  h >> 15;
+  pv->sign = (h >> 15) != 0;
   pv->exp  = (h >> 10) & 0x1F;
   pv->frac = (unsigned long long)(h & 0x3FFu) << 53;
   
@@ -150,8 +150,8 @@ int dnf_fromsingle(dnf__s *const pv,float f)
   
   assert(pv != NULL);
   
-  pv->sign =  x.i >> 31;
-  pv->exp  = (x.i >> 23) & 0xFFuL;
+  pv->sign = (x.i >> 31) != 0;
+  pv->exp  = (int)((x.i >> 23) & 0xFFuL);
   pv->frac = (unsigned long long)(x.i & 0x007FFFFFuL) << 41;
   
   if (pv->exp == 0xFF)
@@ -181,11 +181,11 @@ int dnf_fromdouble(dnf__s *const pv,double d)
   
   assert(pv != NULL);
   
-  pv->sign =  x.i >> 63;
-  pv->exp  = (x.i >> 52) & 0x7FFuLL;
+  pv->sign = (x.i >> 63) != 0;
+  pv->exp  = (int)((x.i >> 52) & 0x7FFuLL);
   pv->frac = (unsigned long long)(x.i & 0x000FFFFFFFFFFFFFuLL) << 11;
   
-  if (pv->exp == 0x7FFuLL)
+  if (pv->exp == 0x7FF)
     pv->exp = INT_MAX;
   else if (pv->exp == 0)
   {
@@ -254,7 +254,7 @@ int dnf_tohalf(unsigned short int *const ph,dnf__s v)
   ;------------------------------------*/
   
   else
-    h = (unsigned short)((v.exp + 15) & 0x1F) << 10;
+    h = (unsigned short)((unsigned)((v.exp + 15) & 0x1F) << 10);
   
   /*--------------------------------------------------------------------
   ; Check the precision and indicate an error if we exceed the number of
@@ -279,7 +279,7 @@ int dnf_tosingle(float *const pf,dnf__s v)
   assert(pf != NULL);
   
   if (v.exp == INT_MAX)
-    f.i = 0x7F800000uL;
+    f.i = (uint32_t)0x7F800000uL;
   else if ((v.exp < -149) || (v.exp > 127))
     return ERANGE;
   else if ((v.exp == 0) && (v.frac == 0))
