@@ -961,11 +961,34 @@ TAG = setmetatable(
     
     -- =====================================================================
     
-    _decimalfractionexp = function()
+    _decimalfractionexp = function(value)
+      assert(type(value) == 'table',"__decimalfractionexp expects an array")
+      assert(#value == 2,"_decimalfractionexp expects a two item array")
+      assert(math.type(value[1]) == 'integer' or type(value[1]) == 'string')
+      assert(math.type(value[1]) == 'integer')
+      return cbor5.encode(0xC0,264) .. TYPE.ARRAY(value)
     end,
     
-    [264] = function(_,pos)
-      return '_decimalfractionexp',nil,pos
+    [264] = function(packet,pos,conv,ref)
+      local ctype,value,npos = decode(packet,pos,conv,ref)
+      
+      if ctype ~= 'ARRAY' then
+        throw(pos,"_decimalfractionexp: wanted ARRAY, got %s",ctype)
+      end
+      
+      if #value ~= 2 then
+        throw(pos,"_decimalfractionexp: wanted ARRAY(2), got ARRAY(%d)",#value)
+      end
+      
+      if math.type(value[1]) ~= 'integer' and type(value[1]) ~= 'string' then
+        throw(pos,"_decimalfractionexp: wanted integer or bighum for exp, got %s",type(value))
+      end
+      
+      if math.type(value[2]) ~= 'integer' then
+        throw(pos,"_decimalfractionexp: wanted integer or mantissa, got %s",type(value))
+      end
+      
+      return '_decimalfractionexp',value,npos
     end,
     
     -- =====================================================================
