@@ -981,7 +981,7 @@ TAG = setmetatable(
       end
       
       if math.type(value[1]) ~= 'integer' and type(value[1]) ~= 'string' then
-        throw(pos,"_decimalfractionexp: wanted integer or bighum for exp, got %s",type(value))
+        throw(pos,"_decimalfractionexp: wanted integer or bignum for exp, got %s",type(value))
       end
       
       if math.type(value[2]) ~= 'integer' then
