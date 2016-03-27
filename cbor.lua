@@ -537,19 +537,28 @@ TAG = setmetatable(
       assert(#value              == 2,        "_bigfloat expects a two item array")
       assert(type(value[1])      == 'number', "_bigfloat expects a number as first element")
       assert(math.type(value[2]) == 'integer',"_bigfloat expecta an integer as second element")
-      
       return cbor5.encode(0xC0,5) .. TYPE.ARRAY(value)
     end,
       
     [5] = function(packet,pos,conv,ref)
       local ctype,value,npos = decode(packet,pos,conv,ref)
-      if ctype ~= 'ARRAY' then throw(pos,"_bigfloat: wanted ARRAY, got %s",ctype) end
-      if value ~= 2 then throw(pos,"_bigfloat: watned ARRAY[2], got ARRAY[%s]",value) end
-      local result = {}
-      ctype,result.exp,npos = decode(packet,npos,conv,ref)
-      if not isnumber(ctype) then throw(pos,"_bigfloat: wanted number for exp, got %s",ctype) end
-      ctype,result.mantissa,npos = decode(packet,npos,conv,ref)
-      if not isinteger(ctype) then throw(pos,"_bigfloat: wanted integer for mantissa, got %s",ctype) end
+      
+      if ctype ~= 'ARRAY' then
+        throw(pos,"_bigfloat: wanted ARRAY, got %s",ctype)
+      end
+      
+      if #value ~= 2 then
+        throw(pos,"_bigfloat: watned ARRAY[2], got ARRAY[%s]",value)
+      end
+      
+      if type(value[1]) ~= 'number' then
+        throw(pos,"_bigfloat: wanted number for exp, got %s",ctype)
+      end
+      
+      if math.type(value[2]) ~= 'integer' then
+        throw(pos,"_bigfloat: wanted integer for mantissa, got %s",ctype)
+      end
+      
       return '_bigfloat',result,npos
     end,
     
