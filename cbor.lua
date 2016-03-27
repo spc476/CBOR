@@ -562,7 +562,7 @@ TAG = setmetatable(
       assert(math.type(value[2]) == 'integer',"_bigfloat expecta an integer as second element")
       return cbor5.encode(0xC0,5) .. TYPE.ARRAY(value)
     end,
-      
+    
     [5] = function(packet,pos,conv,ref)
       local ctype,value,npos = decode(packet,pos,conv,ref)
       
@@ -1033,7 +1033,7 @@ TAG = setmetatable(
     [22098] = function(packet,pos,conv,ref)
       local _,value,npos = decode(packet,pos,conv,ref)
       return '_indirection',value,npos
-    end,    
+    end,
   },
   {
     __index = function(_,key)
