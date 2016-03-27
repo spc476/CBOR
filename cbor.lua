@@ -925,11 +925,13 @@ TAG = setmetatable(
     
     -- =====================================================================
     
-    _id = function()
+    _id = function(value)
+      return cbor5.encode(0xC0,39) .. encode(value)
     end,
     
-    [39] = function(_,pos)
-      return '_id',nil,pos
+    [39] = function(packet,pos,conv,ref)
+      local _,value,npos = decode(packet,pos,conv,ref)
+      return '_id',value,npos
     end,
     
     -- =====================================================================
