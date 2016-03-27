@@ -825,7 +825,7 @@ TAG = setmetatable(
       -- The encoding phase is done by hand for this.  Here we go ... 
       -- -----------------------------------------------------------------
       
-      assert(type(value) == 'array')
+      assert(type(value) == 'table')
       assert(#value == 2)
       assert(math.type(value[1]) == 'integer' or type(value[1] == 'string'))
       assert(
