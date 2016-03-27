@@ -979,11 +979,13 @@ TAG = setmetatable(
     
     -- =====================================================================
     
-    _indirection = function()
+    _indirection = function(value)
+      return cbor5.encode(0xC0,22098) .. encode(value)
     end,
     
-    [22098] = function(_,pos)
-      return '_indirection',nil,pos
+    [22098] = function(packet,pos,conv,ref)
+      local _,value,npos = decode(packet,pos,conv,ref)
+      return '_indirection',value,npos
     end,    
   },
   {
