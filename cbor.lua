@@ -677,10 +677,10 @@ TAG = setmetatable(
       return '_magic_cbor','_magic_cbor',pos
     end,
     
-    -- ----------------------------------------------------------
+    -- **********************************************************
     -- Following defined by IANA  
     -- http://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml
-    -- ----------------------------------------------------------
+    -- **********************************************************
     
     _nthstring = function()
     end,
