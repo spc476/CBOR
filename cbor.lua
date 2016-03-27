@@ -68,7 +68,7 @@
 --			* _sharedref	reference (UINT)
 --			* _rational	Rational number (not supported)
 --			* _uuid		UUID value (BIN)
---			* _langstring	Language-tagged string (not supported)
+--			* _language	Language-tagged string (not supported)
 --			* _id		Identifier (not supported)
 --			* _stringref	string reference (not supported)
 --			* _bmime	Binary MIME message (not supported)
@@ -893,11 +893,34 @@ TAG = setmetatable(
     
     -- =====================================================================
     
-    _langstring = function()
+    _language = function(value)
+      assert(type(value) == 'table')
+      assert(#value == 2)
+      assert(type(value[1]) == 'string')
+      assert(type(value[2]) == 'string')
+      
+      return cbor5.encode(0xC0,38) .. TYPE.ARRAY(value)
     end,
     
-    [38] = function(_,pos)
-      return '_langstring',nil,pos
+    [38] = function(packet,pos,conv,ref)
+      local ctype,value,npos = decode(packet,pos,conv,ref)
+      if ctype ~= 'ARRAY' then
+        throw(pos,"_language: wanted ARRAY, got %s",ctype)
+      end
+      
+      if #value ~= 2 then
+        throw(pos,"_language: wanted ARRAY(2), got ARRAY(%d)",#value)
+      end
+      
+      if type(value[1]) ~= 'string' then
+        throw(pos,"_langauge: wanted TEXT for language specifier")
+      end
+      
+      if type(value[2]) ~= 'string' then
+        throw(pos,"_language: wanted TEXT for text");
+      end
+      
+      return '_language',value,npos
     end,
     
     -- =====================================================================

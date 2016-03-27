@@ -288,3 +288,8 @@ end,false,true,false)
 
 test('_rational',"d81e820103",{ 1 , 3 })
 
+-- _language
+-- http://peteroupc.github.io/CBOR/langtags.html
+
+test('_language',"d8268262656E6548656C6C6F",{ "en" , "Hello"})
+test('_language',"d8268262667267426F6E6A6F7572",{ "fr" , "Bonjour" })
