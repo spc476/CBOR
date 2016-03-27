@@ -499,7 +499,7 @@ TAG = setmetatable(
     end,
     
     -- =====================================================================
-
+    
     _decimalfraction = function(value)
       assert(type(value)    == 'table', "_decimalfractoin expects an array")
       assert(#value         == 2,       "_decimalfraction expects a two item array")
