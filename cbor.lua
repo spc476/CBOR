@@ -993,11 +993,35 @@ TAG = setmetatable(
     
     -- =====================================================================
     
-    _bigfloatexp = function()
+    _bigfloatexp = function(value)
+      assert(type(value) == 'table',"__bigfloatexp expects an array")
+      assert(#value == 2,"_bigfloatexp expects a two item array")
+      assert(type(value[1]) == 'number' or type(value[1]) == 'string')
+      assert(math.type(value[1]) == 'integer')
+      return cbor5.encode(0xC0,265) .. TYPE.ARRAY(value)
+    
     end,
     
-    [265] = function(_,pos)
-      return '_bigfloatexp',nil,pos
+    [265] = function(packet,pos,conv,ref)
+      local ctype,value,npos = decode(packet,pos,conv,ref)
+      
+      if ctype ~= 'ARRAY' then
+        throw(pos,"_bigfloatexp: wanted ARRAY, got %s",ctype)
+      end
+      
+      if #value ~= 2 then
+        throw(pos,"_bigfloatexp: wanted ARRAY(2), got ARRAY(%d)",#value)
+      end
+      
+      if type(value[1]) ~= 'number' and type(value[1]) ~= 'string' then
+        throw(pos,"_bigfloatexp: wanted integer or bignum for exp, got %s",type(value))
+      end
+      
+      if math.type(value[2]) ~= 'integer' then
+        throw(pos,"_bigfloatexp: wanted integer or mantissa, got %s",type(value))
+      end
+      
+      return '_bigfloatexp',value,npos    
     end,
     
     -- =====================================================================
