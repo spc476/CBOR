@@ -424,7 +424,7 @@ TAG = setmetatable(
     
     [0] = function(packet,pos,conv,ref)
       local ctype,value,npos = decode(packet,pos,conv,ref)
-      if type == 'TEXT' then
+      if ctype == 'TEXT' then
         return '_datetime',value,npos
       else
         throw(pos,"_datetime: wanted TEXT, got %s",ctype)
