@@ -527,7 +527,7 @@ TAG = setmetatable(
         throw(pos,"_decimalfraction: wanted integer for mantissa, got %s",ctype)
       end
       
-      return '_decimalfraction',result,npos
+      return '_decimalfraction',value,npos
     end,
     
     -- =====================================================================
@@ -559,7 +559,7 @@ TAG = setmetatable(
         throw(pos,"_bigfloat: wanted integer for mantissa, got %s",ctype)
       end
       
-      return '_bigfloat',result,npos
+      return '_bigfloat',value,npos
     end,
     
     -- =====================================================================
