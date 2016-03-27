@@ -814,11 +814,66 @@ TAG = setmetatable(
     
     -- =====================================================================
     
-    _rational = function()
+    _rational = function(value)
+      -- -----------------------------------------------------------------
+      -- Per spec [1], the first value must be an integer (positive or
+      -- negative) and the second value must be a positive integer greater
+      -- than 0.  Since I'm don't know the format for bignums, there's
+      -- little error checking if those are in use.  That's the way things
+      -- go.
+      --
+      -- The encoding phase is done by hand for this.  Here we go ... 
+      -- -----------------------------------------------------------------
+      
+      assert(type(value) == 'array')
+      assert(#value == 2)
+      assert(math.type(value[1]) == 'integer' or type(value[1] == 'string'))
+      assert(
+              math.type(value[2]) == 'integer' and value[2] > 0
+              or type(value[2]) == 'string'
+            )
+            
+      local res = cbor5.encode(0x80,2)
+      
+      if math.type(value[1]) == 'integer' then
+        res = res .. __ENCODE_MAP.number(value[1])
+      else
+        res = res .. TYPE.BIN(value[1])
+      end
+       
+      if math.type(value[2]) == 'integer' then
+        res = res .. TYPE.UINT(value[2])
+      else
+        res = res .. TYPE.BIN(value[2])
+      end
+      
+      return res
     end,
     
-    [30] = function(_,pos)
-      return '_rational',nil,pos
+    [30] = function(packet,pos,conv,ref)
+      local ctype,value,npos = decode(packet,pos,conv,ref)
+      
+      if ctype ~= 'ARRAY' then
+        throw(pos,"_rational wanted ARRAY, got %s",ctype)
+      end
+      
+      if #value ~= 2 then
+        throw(pos,"_rational: wanted ARRAY[2], got ARRAY[%d]",#value)
+      end
+      
+      if math.type(value[1]) ~= 'integer' and type(value[1]) ~= 'string' then
+        throw(pos,"_rationa;: wanted integer or bignum for numerator, got %s",type(value[1]))
+      end
+      
+      if math.type(value[2]) ~= 'integer' and type(value[2]) ~= 'string' then
+        throw(pos,"_rational: wanted integer or bignum for demoninator, got %s",type(value[2]))
+      end
+      
+      if math.type(value[2]) == 'integer' and value[2] < 1 then
+        throw(pos,"_rational: wanted >1 for demoninator")
+      end
+      
+      return '_rational',value,npos
     end,
     
     -- =====================================================================

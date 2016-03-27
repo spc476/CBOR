@@ -283,3 +283,8 @@ test('ARRAY',"d81c81d81d00",function(v)
   return true
 end,false,true,false)
 
+-- _rational
+-- http://peteroupc.github.io/CBOR/rational.html
+
+test('_rational',"d81e820103",{ 1 , 3 })
+
