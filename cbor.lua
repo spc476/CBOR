@@ -503,21 +503,30 @@ TAG = setmetatable(
     _decimalfraction = function(value)
       assert(type(value)    == 'table', "_decimalfractoin expects an array")
       assert(#value         == 2,       "_decimalfraction expects a two item array")
-      assert(type(value[1]) == 'number',"_decimalfraction expects number as first element")
-      assert(type(value[2]) == 'number',"_decimalfraction expects number as second element")
-        
+      assert(math.type(value[1]) == 'integer',"_decimalfraction expects integer as first element")
+      assert(math.type(value[2]) == 'integer',"_decimalfraction expects integer as second element")
       return cbor5.encode(0xC0,4) .. TYPE.ARRAY(value)
     end,
     
     [4] = function(packet,pos,conv,ref)
       local ctype,value,npos = decode(packet,pos,conv,ref)
-      if ctype ~= 'ARRAY' then throw(pos,"_decimalfraction: wanted ARRAY, got %s",ctype) end
-      if value ~= 2 then throw(pos,"_decimalfraction: wanted ARRAY[2], got ARRAY[%s]",value) end
-      local result = {}
-      ctype,result.exp,npos = decode(packet,npos,conv,ref)
-      if not isinteger(ctype) then throw(pos,"_decimalfraction: wanted integer for exp, got %s",ctype) end
-      ctype,result.mantissa,npos = decode(packet,npos,conv,ref)
-      if not isinteger(ctype) then throw(pos,"_decimalfraction: wanted integer for mantissa, got %s",ctype) end
+      
+      if ctype ~= 'ARRAY' then 
+        throw(pos,"_decimalfraction: wanted ARRAY, got %s",ctype)
+      end
+      
+      if #value ~= 2 then
+        throw(pos,"_decimalfraction: wanted ARRAY[2], got ARRAY[%s]",value)
+      end
+      
+      if math.type(value[1]) ~= 'integer' then
+        throw(pos,"_decimalfraction: wanted integer for exp, got %s",ctype)
+      end
+      
+      if math.type(value[2]) ~= 'integer' then
+        throw(pos,"_decimalfraction: wanted integer for mantissa, got %s",ctype)
+      end
+      
       return '_decimalfraction',result,npos
     end,
     
