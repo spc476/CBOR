@@ -734,11 +734,17 @@ TAG = setmetatable(
     
     -- =====================================================================
     
-    _serialobj = function()
+    _serialobj = function(value)
+      return cbor5.encode(0xC0,27) .. TYPE.ARRAY(value)
     end,
     
-    [27] = function(_,pos)
-      return '_serialobj',nil,pos
+    [27] = function(packet,pos,conv,ref)
+      local ctype,value,npos = decode(packet,pos,conv,ref)
+      if ctype == 'ARRAY' then
+        return '_serialobj',value,npos
+      else
+        throw(pos,"_serialobj: wanted ARRAY, got %s",ctype)
+      end
     end,
     
     -- =====================================================================
