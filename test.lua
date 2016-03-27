@@ -223,3 +223,46 @@ test('MAP',"bf6346756ef563416d7421ff",{ Fun = true , Amt = -2 })
 -- ***********************************************************************
 
 test('TAG_1234567890',"DA499602D200",0)
+
+-- _stringref and _nthstring tests
+-- http://cbor.schmorp.de/stringref
+
+test('ARRAY',"d9010083a34472616e6b0445636f756e741901a1446e616d6548436f636b7461696ca3d819024442617468d81901190138d8190004a3d8190244466f6f64d819011902b3d8190004",
+	{
+	  {
+	    name = 'Cocktail',
+	    count = 417,
+	    rank = 4,
+	  },
+	  {
+	    rank = 4,
+	    count = 312,
+	    name = "Bath",
+	  },
+	  {
+	    count = 691,
+	    name = "Food",
+	    rank = 4
+	  },
+	})
+
+-- NOTE: in the 2nd example, the JSON array and the binary CBOR
+-- representation don't match.  The JSON array here is fixed to match the
+-- actual binary presented.
+
+test('ARRAY',"d9010098204131433232324333333341344335353543363636433737374338383843393939436161614362626243636363436464644365656543666666436767674368686843696969436a6a6a436b6b6b436c6c6c436d6d6d436e6e6e436f6f6f4370707043717171437272724473737373d81901d8191743727272d8191818",
+	{  
+	  "1", "222", "333",   "4", "555", "666", "777", "888", "999",
+	  "aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg", "hhh", "iii",
+	  "jjj", "kkk", "lll", "mmm", "nnn", "ooo", "ppp", "qqq", "rrr",
+	  "ssss" , "333", "qqq", "rrr", "ssss" 
+	})
+
+test('ARRAY',"d901008563616161d81900d90100836362626263616161d81901d901008263636363d81900d81900",
+	{ 
+	  "aaa" , "aaa" , 
+	  { "bbb" , "aaa" , "aaa" } , 
+	  { "ccc" , "ccc" } , 
+	  "aaa" 
+	})
+

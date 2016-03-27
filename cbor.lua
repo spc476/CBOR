@@ -196,8 +196,29 @@ end
 -- ***********************************************************************
 
 local function bintext(packet,pos,info,value,conv,ref,ctype)
+
+  local function mstrlen()
+    if #ref._stringref < 24 then
+      return 3
+    elseif #ref._stringref < 256 then
+      return 4
+    elseif #ref._stringref < 65536 then
+      return 5
+    elseif #ref._stringref < 4294967296 then
+      return 7
+    else
+      return 11
+    end
+  end
+  
   if info < 31 then
     local data = packet:sub(pos,pos + value - 1)
+    if not ref._stringref[data] then
+      if #data >= mstrlen() then
+        table.insert(ref._stringref,{ ctype = ctype , value = data })
+        ref._stringref[data] = true
+      end
+    end
     return ctype,data,pos + value
   else
     local acc = {}
@@ -664,8 +685,17 @@ TAG = setmetatable(
     _nthstring = function()
     end,
     
-    [25] = function(_,pos)
-      return '_nthstring',nil,pos
+    [25] = function(packet,pos,conv,ref)
+      local ctype,value,npos = decode(packet,pos,conv,ref)
+      if ctype == 'UINT' then
+        value = value + 1
+        if not ref._stringref[value] then
+          throw(pos,"_nthstring: invalid index %d",value)
+        end
+        return ref._stringref[value].ctype,ref._stringref[value].value,npos
+      else
+        throw(pos,"_nthstring: wanted UINT, got %s",ctype)
+      end
     end,
     
     -- =====================================================================
@@ -751,8 +781,12 @@ TAG = setmetatable(
     _stringref = function()
     end,
     
-    [256] = function(_,pos)
-      return '_stringref',nil,pos
+    [256] = function(packet,pos,conv,ref)
+      local prev = ref._stringref
+      ref._stringref = {}
+      local ctype,value,npos = decode(packet,pos,conv,ref)
+      ref._stringref = prev
+      return ctype,value,npos
     end,
     
     -- =====================================================================
@@ -969,20 +1003,22 @@ end
 --		appropriate type for your code.  For instance, an _epoch can
 --		be converted into a table.
 --
---		The reference table is used (with tagging) to construct
---		references (allowing string reuse, or cycles in tables).  An
---		empty table *should* be passed in and not at all stored,
---		since it will be used by the decode() function to store data
---		as it decodes references.
+--		Users of this function *should not* pass a reference table
+--		into this routine---this is used internally to handle
+--		references.  You need to know what you are doing to use this
+--		parameter.  You have been warned.
 --
 --		The iskey is true if the value is being used as a key in a
---		map, and is passed to the conversion routine.
+--		map, and is passed to the conversion routine; this too,
+--		is an internal use only variable and you need to know what
+--		you are doing to use this.  You have been warned.
 --
 -- ***********************************************************************
 
 function decode(packet,pos,conv,ref,iskey)
   pos  = pos  or 1
   conv = conv or {}
+  ref  = ref  or { _stringref = {} }
   
   local okay,ctype,value,npos = pcall(decode1,packet,pos,conv,ref)
   
