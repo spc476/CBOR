@@ -944,10 +944,10 @@ local function decode1(packet,pos,conv,ref)
 end
 
 -- ***********************************************************************
--- Usage:	ctype,value,pos2 = cbor.decode(packet,pos,conv,ref,iskey)
+-- Usage:	ctype,value,pos2 = cbor.decode(packet[,pos][,conv][,ref][,iskey])
 -- Desc:	Decode CBOR encoded data
 -- Input:	packet (binary) CBOR binary blob
---		pos (integer) starting point for decoding
+--		pos (integer/optional) starting point for decoding
 --		conv (table/optional) table of conversion routines
 --		ref (table/optional) reference table (see notes)
 --		iskey (boolean/optional) is a key in a MAP (see notes)
