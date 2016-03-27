@@ -700,11 +700,18 @@ TAG = setmetatable(
     
     -- =====================================================================
     
-    _perlobj = function()
+    _perlobj = function(value)
+      assert(type(value) == 'table',"_perlobj expects an array")      
+      return cbor5.encode(0xC0,26) .. TYPE.ARRAY(value)
     end,
     
-    [26] = function(_,pos)
-      return '_perlobj',nil,pos
+    [26] = function(packet,pos,conv,ref)
+      local ctype,value,npos = decode(packet,pos,conv,ref)
+      if ctype == 'ARRAY' then
+        return '_perlobj',value,npos
+      else
+        throw(pos,"_perlobj: wanted ARRAY, got %s",cype)
+      end
     end,
     
     -- =====================================================================
