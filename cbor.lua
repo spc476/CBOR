@@ -701,6 +701,7 @@ TAG = setmetatable(
     -- **********************************************************
     
     _nthstring = function()
+      assert(false)
     end,
     
     [25] = function(packet,pos,conv,ref)
@@ -809,6 +810,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _stringref = function()
+      assert(false)
     end,
     
     [256] = function(packet,pos,conv,ref)
