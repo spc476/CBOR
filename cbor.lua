@@ -543,11 +543,11 @@ TAG = setmetatable(
       end
       
       if math.type(value[1]) ~= 'integer' then
-        throw(pos,"_decimalfraction: wanted integer for exp, got %s",ctype)
+        throw(pos,"_decimalfraction: wanted integer for exp, got %s",type(value[1]))
       end
       
       if math.type(value[2]) ~= 'integer' then
-        throw(pos,"_decimalfraction: wanted integer for mantissa, got %s",ctype)
+        throw(pos,"_decimalfraction: wanted integer for mantissa, got %s",type(value[2]))
       end
       
       return '_decimalfraction',value,npos
