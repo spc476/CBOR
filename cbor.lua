@@ -719,7 +719,6 @@ TAG = setmetatable(
     -- =====================================================================
     
     _perlobj = function(value)
-      assert(type(value) == 'table',"_perlobj expects an array")      
       return cbor5.encode(0xC0,26) .. TYPE.ARRAY(value)
     end,
     
