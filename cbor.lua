@@ -727,7 +727,7 @@ TAG = setmetatable(
       if ctype == 'ARRAY' then
         return '_perlobj',value,npos
       else
-        throw(pos,"_perlobj: wanted ARRAY, got %s",cype)
+        throw(pos,"_perlobj: wanted ARRAY, got %s",ctype)
       end
     end,
     
