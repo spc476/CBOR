@@ -197,6 +197,15 @@ end
 
 local function bintext(packet,pos,info,value,conv,ref,ctype)
 
+  -- ----------------------------------------------------------------------
+  -- Support for _stringref and _nthstring tags [1].  Strings shorter than
+  -- the reference mark will NOT be encoded, so these strings will not have
+  -- a reference upon decoding.  This function returns the minimum length a
+  -- string should have to find its reference.
+  --
+  -- [1] http://cbor.schmorp.de/stringref
+  -- ----------------------------------------------------------------------
+  
   local function mstrlen()
     if #ref._stringref < 24 then
       return 3
@@ -213,6 +222,11 @@ local function bintext(packet,pos,info,value,conv,ref,ctype)
   
   if info < 31 then
     local data = packet:sub(pos,pos + value - 1)
+    
+    -- --------------------------------------------------
+    -- make sure the string is long enough to reference
+    -- --------------------------------------------------
+    
     if not ref._stringref[data] then
       if #data >= mstrlen() then
         table.insert(ref._stringref,{ ctype = ctype , value = data })
