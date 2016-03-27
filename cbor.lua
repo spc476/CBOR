@@ -950,11 +950,13 @@ TAG = setmetatable(
     
     -- =====================================================================
     
-    _bmime = function()
+    _bmime = function(value)
+      return cbor5.encode(0xC0,257) .. TYPE.BIN(value)
     end,
     
-    [257] = function(_,pos)
-      return '_bmime',nil,pos
+    [257] = function(packet,pos,conv,ref)
+      local _,value,npos = decode(packet,pos,conv,ref)
+      return '_bmime',value,npos
     end,
     
     -- =====================================================================
