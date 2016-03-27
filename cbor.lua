@@ -539,7 +539,7 @@ TAG = setmetatable(
       end
       
       if #value ~= 2 then
-        throw(pos,"_decimalfraction: wanted ARRAY[2], got ARRAY[%s]",value)
+        throw(pos,"_decimalfraction: wanted ARRAY[2], got ARRAY[%d]",#value)
       end
       
       if math.type(value[1]) ~= 'integer' then
