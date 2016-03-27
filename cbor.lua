@@ -368,7 +368,16 @@ TYPE =
   end,
   
   [0x80] = function(packet,pos,_,value,conv,ref)
-    local acc = {}
+  
+    -- ---------------------------------------------------------------------
+    -- Per [1], shared references need to exist before the decoding process. 
+    -- ref._sharedref.REF will be such a reference.  If it doesn't exist,
+    -- then just create a table.
+    --
+    -- [1] http://cbor.schmorp.de/value-sharing
+    -- ---------------------------------------------------------------------
+    
+    local acc = ref._sharedref.REF or {}
     
     for i = 1 , value do
       local ctype,avalue,npos = decode(packet,pos,conv,ref)
@@ -401,7 +410,7 @@ TYPE =
   end,
   
   [0xA0] = function(packet,pos,_,value,conv,ref)
-    local acc = {}
+    local acc = ref._sharedref.REF or {} -- see comment above
     for _ = 1 , value do
       local nctype,nvalue,npos = decode(packet,pos,conv,ref,true)
       if nctype == '__break' then return 'MAP',acc,npos end
@@ -723,7 +732,7 @@ TAG = setmetatable(
       if ctype == 'UINT' then
         value = value + 1
         if not ref._stringref[value] then
-          throw(pos,"_nthstring: invalid index %d",value)
+          throw(pos,"_nthstring: invalid index %d",value - 1)
         end
         return ref._stringref[value].ctype,ref._stringref[value].value,npos
       else
@@ -762,21 +771,45 @@ TAG = setmetatable(
     end,
     
     -- =====================================================================
+    -- To cut down on the silliness, not all types are shareable, only
+    -- ARRAYs and MAPs will be supported.  TEXT and BIN have their own
+    -- reference system; sharing UINT, NINT or SIMPLE just doesn't make
+    -- sense, and TAGs aren't shareable either.  So ARRAY and MAP it is!
+    -- =====================================================================
     
     _shareable = function()
+      assert(false)
     end,
     
-    [28] = function(_,pos)
-      return '_shareable',nil,pos
+    [28] = function(packet,pos,conv,ref)
+      ref._sharedref.REF = {}
+      table.insert(ref._sharedref,{ value = ref._sharedref.REF })
+      local ctype,value,npos = decode(packet,pos,conv,ref)
+      if ctype == 'ARRAY' or ctype == 'MAP' then
+        ref._sharedref[#ref._sharedref].ctype = ctype
+        return ctype,value,npos
+      else
+        throw(pos,"_shareable: wanted ARRAY or MAP, got %s",ctype)
+      end
     end,
     
     -- =====================================================================
     
     _sharedref = function()
+      assert(false)
     end,
     
-    [29] = function(_,pos)
-      return '_sharedref',nil,pos
+    [29] = function(packet,pos,conv,ref)
+      local ctype,value,npos = decode(packet,pos,conv,ref)
+      if ctype == 'UINT' then
+        value = value + 1
+        if not ref._sharedref[value] then
+          throw(pos,"_sharedref: invalid index %d",value - 1)
+        end
+        return ref._sharedref[value].ctype,ref._sharedref[value].value,npos
+      else
+        throw(pos,"_sharedref: wanted ARRAY or MAP, got %s",ctype)
+      end
     end,
     
     -- =====================================================================
@@ -1064,7 +1097,7 @@ end
 function decode(packet,pos,conv,ref,iskey)
   pos  = pos  or 1
   conv = conv or {}
-  ref  = ref  or { _stringref = {} }
+  ref  = ref  or { _stringref = {} , _sharedref = {} }
   
   local okay,ctype,value,npos = pcall(decode1,packet,pos,conv,ref)
   

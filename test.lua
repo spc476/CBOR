@@ -123,7 +123,7 @@ local function test(tart,src,target,disp,bad,badrt)
     end
   end 
   
-  if not badrt then
+  if not badrt and not type(target) == 'function' then
     assert(roundtrip(target),string.format("Failed RT: %s %s",tart,src))
   end
 end
@@ -270,3 +270,16 @@ test('ARRAY',"d901008563616161d81900d90100836362626263616161d81901d9010082636363
 
 test('_perlobj',"d81a826c4d793a3a4461746554696d651a00bc614e",
 	{ "My::DateTime" , 12345678 })
+
+-- _shareable and __sharedref
+-- http://cbor.schmorp.de/value-sharing
+
+test('ARRAY',"83d81c80d81d0080",{ {},{},{}})
+
+test('ARRAY',"d81c81d81d00",function(v)
+  assert(type(v) == 'table')
+  assert(#v == 1)
+  assert(v[1] == v)
+  return true
+end,false,true,false)
+
