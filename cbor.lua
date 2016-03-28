@@ -1046,7 +1046,7 @@ TAG = setmetatable(
         
       elseif type(key) == 'string' then
         return function(value)
-          return cbor5.encode(0xC0,key) .. encode(value)
+          return cbor5.encode(0xC0,tonumber(key)) .. encode(value)
         end
       end
     end
