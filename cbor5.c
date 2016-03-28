@@ -181,7 +181,7 @@ static int cbor5lua_encode468A(lua_State *L)
   assert((type == 0x40) || (type == 0x60) || (type == 0x80) || (type ==  0xA0));
 #endif
 
-  if (lua_isnil(L,2))
+  if (lua_isnoneornil(L,2))
   {
     char t = (char)(luaL_checkinteger(L,1) | 31);
     lua_pushlstring(L,&t,1);
@@ -223,13 +223,13 @@ static int cbor5lua_encodeE(lua_State *L)
   
   assert(L != NULL);
   
-  if (lua_isnil(L,2))
+  if (lua_isnoneornil(L,2))
   {
     /*--------------------------------
     ; encoding a __break value?
     ;---------------------------------*/
     
-    if (lua_isnil(L,3))
+    if (lua_isnoneornil(L,3))
     {
       char t = (char)(luaL_checkinteger(L,1) | 31);
       lua_pushlstring(L,&t,1);
