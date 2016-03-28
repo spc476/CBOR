@@ -104,6 +104,7 @@ local setmetatable = setmetatable
 local pairs        = pairs
 local ipairs       = ipairs
 local type         = type
+local tonumber     = tonumber
 
 if _LUA_VERSION == "Lua 5.1" then
   function math.type(n)
@@ -1173,7 +1174,7 @@ SIMPLE = setmetatable(
         
       elseif type(key) == 'string' then
         return function()
-          cbor5.encode(0xE0,key)
+          return cbor5.encode(0xE0,tonumber(key))
         end
       end
     end
