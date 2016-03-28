@@ -261,7 +261,7 @@ int dnf_tohalf(unsigned short int *const ph,dnf__s v)
   ; bits we have for the fractional portion.
   ;---------------------------------------------------------------------*/
   
-  if ((v.frac & 0x003FFFFFFFFFFFFFuLL) != 0uLL)
+  if ((v.frac & 0x001FFFFFFFFFFFFFuLL) != 0uLL)
     return EDOM;
   
   h   |= (unsigned short)(v.frac >> 53) & 0x03FFuLL;
