@@ -17,11 +17,11 @@
 --
 -- Comments, questions and criticisms can be sent to: sean@conman.org
 --
--- luacheck: globals cbor cbor5 lpeg
+-- luacheck: globals cbor cbor5
 -- ***************************************************************
 
-lpeg       = require "lpeg"
-cbor       = require "cbor"
+cbor5 = require "cbor5"
+cbor  = require "cbor"
 
 -- ***********************************************************************
 
