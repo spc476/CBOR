@@ -337,6 +337,34 @@ test('MAP',"bf6346756ef563416d7421ff",{ Fun = true , Amt = -2 },
 
 test('TAG_1234567890',"DA499602D200",0,
 	function() return cbor.TAG['1234567890'](0) end)
+test('_datetime',"C073323031362D30332D30315431343A31343A3333","2016-03-01T14:14:33",
+	function() return cbor.TAG._datetime "2016-03-01T14:14:33" end)
+test('_pbignum',"C24A0102030405060708090A","\1\2\3\4\5\6\7\8\9\10",
+	function() return cbor.TAG._pbignum "\1\2\3\4\5\6\7\8\9\10" end)
+test('_nbignum',"C34A8002030405060708090A","\128\2\3\4\5\6\7\8\9\10",
+	function() return cbor.TAG._nbignum "\128\2\3\4\5\6\7\8\9\10" end)
+test('_decimalfraction',"C4820103",{ 1 , 3 },
+	function() return cbor.TAG._decimalfraction { 1 , 3 } end)
+test('_bigfloat',"C5822003",{ -1 , 3 },
+	function() return cbor.TAG._bigfloat { -1 , 3 } end)
+test('_tobase64url',"D54401020304","\1\2\3\4",
+	function() return cbor.TAG._tobase64url "\1\2\3\4" end)
+test('_tobase64',"D64401020304","\1\2\3\4",
+	function() return cbor.TAG._tobase64 "\1\2\3\4" end)
+test('_base64url',"D821684142434461626364","ABCDabcd",
+	function() return cbor.TAG._base64url "ABCDabcd" end)
+test('_base64',"D822684142434461626364","ABCDabcd",
+	function() return cbor.TAG._base64 "ABCDabcd" end)
+test('_regex',"D823712F5B52725D5B45655D5B47675D65783F2F","/[Rr][Ee][Gg]ex?/",
+	function() return cbor.TAG._regex "/[Rr][Ee][Gg]ex?/" end)
+test('_mime',
+	"D824781E436F6E74656E742D547970653A206170706C69636174696F6E2F63626F72",
+	"Content-Type: application/cbor",
+	function()
+	  return cbor.TAG._mime "Content-Type: application/cbor"
+	end)
+test('_magic_cbor',"D9D9F7","_magic_cbor",
+	function() return cbor.TAG._magic_cbor() end)	
 
 -- _stringref and _nthstring tests
 -- http://cbor.schmorp.de/stringref
@@ -414,3 +442,38 @@ test('_language',"d8268262656E6548656C6C6F",{ "en" , "Hello"},
 	
 test('_language',"d8268262667267426F6E6A6F7572",{ "fr" , "Bonjour" },
 	function() return cbor.TAG._language { "fr" , "Bonjour" } end)
+
+-- _id
+-- https://github.com/lucas-clemente/cbor-specs/blob/master/id.md
+
+test('_id',"D82768696F2E737464696E","io.stdin",
+	function() return cbor.TAG._id "io.stdin" end)
+
+-- _bmime
+-- http://peteroupc.github.io/CBOR/binarymime.html
+
+test('_bmime',"D901014401020304","\1\2\3\4",
+	function() return cbor.TAG._bmime "\1\2\3\4" end)
+
+-- _decimalfractionexp and _bigfloatexp
+-- http://peteroupc.github.io/CBOR/bigfrac.html
+
+test('_decimalfractionexp',
+	"D90108824A0102030405060708090A03",
+	{ "\1\2\3\4\5\6\7\8\9\10" , 3 },
+	function()
+	  return cbor.TAG._decimalfractionexp { "\1\2\3\4\5\6\7\8\9\10" , 3 }
+	end)
+
+test('_bigfloatexp',
+	"D90109824A0102030405060708090A03",
+	{ "\1\2\3\4\5\6\7\8\9\10" , 3 },
+	function()
+	  return cbor.TAG._bigfloatexp { "\1\2\3\4\5\6\7\8\9\10" , 3 }
+	end)
+
+-- _indirection
+-- http://cbor.schmorp.de/indirection
+
+test('_indirection',"D95652820102" , { 1 , 2 },
+	function() return cbor.TAG._indirection { 1 , 2 } end)
