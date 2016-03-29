@@ -182,6 +182,30 @@ function isfloat(ctype)
 end  
 
 -- ***********************************************************************
+-- usage:	len = mstrlen(ref)
+-- desc:	This function returns the minimum length a string should
+--		have to find its reference (see notes)
+-- input:	ref (table) reference table
+-- return:	len (integer) minimum string length for reference
+--
+-- note:	via http://cbor.schmorp.de/stringref
+-- ***********************************************************************
+  
+local function mstrlen(ref)
+  if #ref < 24 then
+    return 3
+  elseif #ref < 256 then
+    return 4
+  elseif #ref < 65536 then
+    return 5
+  elseif #ref < 4294967296 then
+    return 7
+  else
+    return 11
+  end
+end
+
+-- ***********************************************************************
 -- usage:	ctype2,value2,pos2 = bintext(packet,pos,info,value,conv,ref,ctype)
 -- desc:	Decode a CBOR BIN or CBOR TEXT into a Lua string
 -- input:	packet (binary) binary blob
@@ -201,25 +225,10 @@ local function bintext(packet,pos,info,value,conv,ref,ctype)
   -- ----------------------------------------------------------------------
   -- Support for _stringref and _nthstring tags [1].  Strings shorter than
   -- the reference mark will NOT be encoded, so these strings will not have
-  -- a reference upon decoding.  This function returns the minimum length a
-  -- string should have to find its reference.
-  --
+  -- a reference upon decoding.
+  --   
   -- [1] http://cbor.schmorp.de/stringref
   -- ----------------------------------------------------------------------
-  
-  local function mstrlen()
-    if #ref._stringref < 24 then
-      return 3
-    elseif #ref._stringref < 256 then
-      return 4
-    elseif #ref._stringref < 65536 then
-      return 5
-    elseif #ref._stringref < 4294967296 then
-      return 7
-    else
-      return 11
-    end
-  end
   
   if info < 31 then
     local data = packet:sub(pos,pos + value - 1)
@@ -229,12 +238,13 @@ local function bintext(packet,pos,info,value,conv,ref,ctype)
     -- --------------------------------------------------
     
     if not ref._stringref[data] then
-      if #data >= mstrlen() then
+      if #data >= mstrlen(ref._stringref) then
         table.insert(ref._stringref,{ ctype = ctype , value = data })
         ref._stringref[data] = true
       end
     end
     return ctype,data,pos + value
+    
   else
     local acc = {}
     local t,nvalue
@@ -941,9 +951,13 @@ TAG = setmetatable(
     end,
     
     -- =====================================================================
+    -- _stringref is like _magic_cbor, it stands for itself and just
+    -- indicates that we're using string references for the next object. 
+    -- I'm doing this because this also have to interact with _sharedref.
+    -- =====================================================================
     
     _stringref = function()
-      assert(false)
+      return cbor5.encode(0xC0,256)
     end,
     
     [256] = function(packet,pos,conv,ref)
@@ -1351,7 +1365,13 @@ __ENCODE_MAP =
 -- ***********************************************************************
 
 function encode(value,sref,stref)
-  return __ENCODE_MAP[type(value)](value,sref,stref)
+  local res = ""
+  
+  if stref then
+    res = TAG._stringref()
+  end
+  
+  return res .. __ENCODE_MAP[type(value)](value,sref,stref)
 end
 
 -- ***********************************************************************
