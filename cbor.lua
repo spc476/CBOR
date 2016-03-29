@@ -599,7 +599,7 @@ TAG = setmetatable(
     
     -- =====================================================================
     
-    _toase64 = function(value)
+    _tobase64 = function(value)
       return cbor5.encode(0xC0,22) .. encode(value)
     end,
     
