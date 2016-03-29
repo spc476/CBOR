@@ -507,16 +507,44 @@ test('_perlobj',"d81a826c4d793a3a4461746554696d651a00bc614e",
 -- _shareable and __sharedref
 -- http://cbor.schmorp.de/value-sharing
 
-test('ARRAY',"83d81c80d81d0080",{ {},{},{}},'SKIP')
+test('ARRAY',"83d81c80d81d0080",{{},{},{}},
+	function()
+	  local x = {}
+	  local ref = {}
+	  return cbor.TYPE.ARRAY(3)
+	      .. cbor.TYPE.ARRAY(x,ref)
+	      .. cbor.TYPE.ARRAY(x,ref)
+	      .. cbor.TYPE.ARRAY({})
+	end,
+	function(_,v)
+	  assertf(type(v) == 'table',"_sharedref: wanted table got %s",type(v))
+	  assertf(#v == 3,"_sharedref:  wanted a table of three entries")
+	  assertf(type(v[1]) == 'table',"_sharedref: wanted v[1] as table")
+	  assertf(type(v[2]) == 'table',"_sharedref: wanged v[2] as table")
+	  assertf(type(v[3]) == 'table','_sharedref: wanted v[3] as table')
+	  assertf(v[1] == v[2],"_sharedref: wanted first two tables equal")
+	  
+	  return true
+	end)
 
-test('ARRAY',"d81c81d81d00",{},
-  'SKIP',
+local ref1 = {} ref1[1] = ref1
+test('ARRAY',"d81c81d81d00",ref1,
+  function()
+    return cbor.encode(ref1,{})
+  end,
+    
   function(_,v)
     assertf(type(v) == 'table',"_sharedref: wanted table got %s",type(v))
     assertf(#v == 1,"_sharedref: length bad %d",#v)
     assertf(v[1] == v,"_sharedref: not a reference")
     return true
   end)
+
+local ref2 = { 1 , 2 , 3 }
+rtst('ARRAY',{ ref2 , ref2 },
+	function(v,sref,stref)
+	  return cbor.encode(v,{})
+	end)
 
 -- _rational
 -- http://peteroupc.github.io/CBOR/rational.html

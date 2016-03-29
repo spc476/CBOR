@@ -399,7 +399,19 @@ TYPE =
       return cbor5.encode(0x80,array)
     end
     
-    local res = cbor5.encode(0x80,#array)
+    local res = ""
+    
+    if sref then
+      if sref[array] then
+        return TAG._sharedref(sref[array],sref,stref)
+      end
+         
+      res = TAG._shareable(array,sref,stref)
+      table.insert(sref,array)
+      sref[array] = #sref - 1
+    end
+    
+    res = res .. cbor5.encode(0x80,#array)
     for _,item in ipairs(array) do
       res = res .. encode(item,sref,stref)
     end
@@ -818,8 +830,9 @@ TAG = setmetatable(
     -- sense, and TAGs aren't shareable either.  So ARRAY and MAP it is!
     -- =====================================================================
     
-    _shareable = function()
-      assert(false)
+    _shareable = function(value,sref,stref)
+      assert(type(value) == 'table')
+      return cbor5.encode(0xC0,28)
     end,
     
     [28] = function(packet,pos,conv,ref)
@@ -836,8 +849,8 @@ TAG = setmetatable(
     
     -- =====================================================================
     
-    _sharedref = function()
-      assert(false)
+    _sharedref = function(value,sref,stref)
+      return cbor5.encode(0xC0,29) .. encode(value,sref,stref)
     end,
     
     [29] = function(packet,pos,conv,ref)
