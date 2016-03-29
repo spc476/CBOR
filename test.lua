@@ -17,13 +17,10 @@
 --
 -- Comments, questions and criticisms can be sent to: sean@conman.org
 --
--- luacheck: globals ddt lpeg dump safestring cbor DISP compare roundtrip cbor5
+-- luacheck: globals cbor cbor5 lpeg
 -- ***************************************************************
 
-ddt        = require "org.conman.debug"
 lpeg       = require "lpeg"
-dump       = require "org.conman.table".dump
-safestring = require "org.conman.table".safestring
 cbor       = require "cbor"
 
 -- ***********************************************************************
@@ -542,7 +539,7 @@ test('ARRAY',"d81c81d81d00",ref1,
 
 local ref2 = { 1 , 2 , 3 }
 rtst('ARRAY',{ ref2 , ref2 },
-	function(v,sref,stref)
+	function(v)
 	  return cbor.encode(v,{})
 	end)
 
