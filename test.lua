@@ -73,7 +73,11 @@ local function compare(a,b)
     end
     return true
   else
-    return a == b
+    if a ~= a and b ~= b then -- handle NaNs
+      return true
+    else
+      return a == b
+    end
   end
 end
 
