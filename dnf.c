@@ -152,7 +152,7 @@ int dnf_fromsingle(dnf__s *const pv,float f)
   
   pv->sign = (x.i >> 31) != 0;
   pv->exp  = (int)((x.i >> 23) & 0xFFuL);
-  pv->frac = (unsigned long long)(x.i & 0x007FFFFFuL) << 41;
+  pv->frac = (unsigned long long)(x.i & 0x007FFFFFuL) << 40;
   
   if (pv->exp == 0xFF)
     pv->exp = INT_MAX;
@@ -292,10 +292,10 @@ int dnf_tosingle(float *const pf,dnf__s v)
   else
     f.i = (uint32_t)((v.exp + 127) & 0xFFuL) << 23;
   
-  if ((v.frac & 0x000001FFFFFFFFFFuLL) != 0uLL)
+  if ((v.frac & 0x000000FFFFFFFFFFuLL) != 0uLL)
     return EDOM;
   
-  f.i |= (uint32_t)(v.frac >> 41) & 0x007FFFFFuL;
+  f.i |= (uint32_t)(v.frac >> 40) & 0x007FFFFFuL;
   f.i |= v.sign ? 0x80000000uL : 0x00000000uL;
   *pf  = f.f;
   return 0;
@@ -326,7 +326,7 @@ int dnf_todouble(double *const pd,dnf__s v)
   if ((v.frac & 0x0000000000000FFFuLL) != 0uLL)
     return EDOM;
   
-  d.i |= (uint64_t)((v.frac >> 12) & 0x000FFFFFFFFFFFFFuLL);
+  d.i |= (uint64_t)((v.frac >> 11) & 0x000FFFFFFFFFFFFFuLL);
   d.i |= v.sign ? 0x8000000000000000uLL : 0x0000000000000000uLL;
   *pd  = d.d;
   return 0;
