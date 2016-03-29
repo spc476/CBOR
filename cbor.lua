@@ -834,7 +834,7 @@ TAG = setmetatable(
               or type(value[2]) == 'string'
             )
             
-      local res = cbor5.encode(0x80,2)
+      local res = cbor5.encode(0xC0,30) .. cbor5.encode(0x80,2)
       
       if math.type(value[1]) == 'integer' then
         res = res .. __ENCODE_MAP.number(value[1])
