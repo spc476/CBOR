@@ -880,12 +880,17 @@ TAG = setmetatable(
     -- =====================================================================
     
     _uuid = function(value)
+      assert(type(value) == 'string')
+      assert(#value == 16)
       return cbor5.encode(0xC0,37) .. TYPE.BIN(value)
     end,
     
     [37] = function(packet,pos,conv,ref)
       local ctype,value,npos = decode(packet,pos,conv,ref)
       if ctype == 'BIN' then
+        if #value ~= 16 then
+          throw(pos,"_uuid: invalid data for UUID")
+        end
         return '_uuid',value,npos
       else
         throw(pos,"_uuid: wanted BIN, got %s",ctype)

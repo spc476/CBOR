@@ -434,6 +434,15 @@ test('ARRAY',"d81c81d81d00",{},
 test('_rational',"d81e820103",{ 1 , 3 },
 	function() return cbor.TAG._rational { 1 , 3 } end)
 
+-- _uuid
+-- https://github.com/lucas-clemente/cbor-specs/blob/master/uuid.md
+
+test('_uuid',"D825506BA7B8119DAD11D180B400C04FD430C8",
+	"k\167\184\17\157\173\17\209\128\180\0\192O\2120\200",
+	function()
+	  return cbor.TAG._uuid "k\167\184\17\157\173\17\209\128\180\0\192O\2120\200"
+	end)
+
 -- _language
 -- http://peteroupc.github.io/CBOR/langtags.html
 
