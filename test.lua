@@ -117,6 +117,22 @@ local function test(ctype,hbinary,src,srcf,destf)
 end
 
 -- ***********************************************************************
+
+local function rtst(ctype,src,f)
+  local encode
+  
+  if f then
+    encode = f(src)
+  else
+    encode = cbor.encode(src)
+  end
+  
+  local rctype,decode = cbor.decode(encode)
+  assertf(rctype == ctype,"decoding type failed: wanted %s got %s",ctype,rctype)
+  assertf(compare(src,decode),"decoding for %s is different",ctype)
+end
+
+-- ***********************************************************************
 -- values from RFC-7049
 -- ***********************************************************************
 
@@ -206,7 +222,9 @@ test('MAP',"a201020304",{ [1] = 2 , [3] = 4},
 	      .. cbor.encode(1) .. cbor.encode(2)
 	      .. cbor.encode(3) .. cbor.encode(4)
 	end)
+rtst('MAP',{ [1] = 2 , [3] = 4 },cbor.TYPE.MAP)
 test('MAP',"a26161016162820203",{ a = 1 , b = { 2, 3 } })
+rtst('MAP',{ a = 1 , b = { 2 , 3 }} )
 test('ARRAY',"826161a161626163",{ "a" , { b = "c" }})
 test('MAP',"a56161614161626142616361436164614461656145",
 	{ a = 'A' , b = 'B' , c = 'C' , d = 'D' , e = 'E' },
@@ -219,6 +237,7 @@ test('MAP',"a56161614161626142616361436164614461656145",
 	      .. cbor.encode "e" .. cbor.encode "E"
 	end
 	)
+rtst('MAP',{ a = "A" , b = 'B' , c = 'C' , d = "D" , e = [[E]] })
 test('BIN',"5f42010243030405ff","\1\2\3\4\5",
 	function() 
 	  return cbor5.encode(0x40)
