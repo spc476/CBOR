@@ -264,6 +264,24 @@ local function decbintext(packet,pos,info,value,conv,ref,ctype)
   end
 end
 
+
+-- ***********************************************************************
+
+local function encbintext(value,sref,stref,ctype)
+  if stref then
+    if #value >= mstrlen then
+      if not stref[value] then
+        table.insert(stref,value)
+        stref[value] = #stref - 1
+      else
+        return TAG._nthstring(stref[value],sref,stref)
+      end
+    end
+  end
+  
+  return cbor5.encode(ctype,#value) .. value
+end
+
 -- ***********************************************************************
 --
 --                             CBOR base TYPES
@@ -335,11 +353,11 @@ TYPE =
   
   -- =====================================================================
   
-  BIN = function(b)
+  BIN = function(b,sref,stref)
     if not b then
       return "\95"
     else
-      return cbor5.encode(0x40,#b) .. b
+      return encbintext(b,sref,stref,0x40)
     end
   end,
   
@@ -349,12 +367,12 @@ TYPE =
   
   -- =====================================================================
   
-  TEXT = function(s)
+  TEXT = function(s,sref,stref)
     if not s then
       return "\127"
     else
       assert(UTF8:match(s) > #s)
-      return cbor5.encode(0x60,#s) .. s
+      return encbintext(s,sref,stref,0x60)
     end
   end,
   
@@ -734,8 +752,8 @@ TAG = setmetatable(
     -- http://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml
     -- **********************************************************
     
-    _nthstring = function()
-      assert(false)
+    _nthstring = function(value,sref,stref)
+      return cbor5.encode(0xC0,25) .. encode(value,sref,stref)
     end,
     
     [25] = function(packet,pos,conv,ref)
