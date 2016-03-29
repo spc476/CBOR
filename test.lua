@@ -17,7 +17,7 @@
 --
 -- Comments, questions and criticisms can be sent to: sean@conman.org
 --
--- luacheck: globals ddt lpeg dump safestring cbor DISP compare roundtrip
+-- luacheck: globals ddt lpeg dump safestring cbor DISP compare roundtrip cbor5
 -- ***************************************************************
 
 ddt        = require "org.conman.debug"
