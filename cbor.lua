@@ -206,7 +206,7 @@ local function mstrlen(ref)
 end
 
 -- ***********************************************************************
--- usage:	ctype2,value2,pos2 = bintext(packet,pos,info,value,conv,ref,ctype)
+-- usage:	ctype2,value2,pos2 = decbintext(packet,pos,info,value,conv,ref,ctype)
 -- desc:	Decode a CBOR BIN or CBOR TEXT into a Lua string
 -- input:	packet (binary) binary blob
 --		pos (integer) byte position in packet
@@ -220,7 +220,7 @@ end
 --		pos2 (integer) position past string just extracted
 -- ***********************************************************************
 
-local function bintext(packet,pos,info,value,conv,ref,ctype)
+local function decbintext(packet,pos,info,value,conv,ref,ctype)
 
   -- ----------------------------------------------------------------------
   -- Support for _stringref and _nthstring tags [1].  Strings shorter than
@@ -344,7 +344,7 @@ TYPE =
   end,
   
   [0x40] = function(packet,pos,info,value,conv,ref)
-    return bintext(packet,pos,info,value,conv,ref,'BIN')
+    return decbintext(packet,pos,info,value,conv,ref,'BIN')
   end,
   
   -- =====================================================================
@@ -359,7 +359,7 @@ TYPE =
   end,
   
   [0x60] = function(packet,pos,info,value,conv,ref)
-    return bintext(packet,pos,info,value,conv,ref,'TEXT')
+    return decbintext(packet,pos,info,value,conv,ref,'TEXT')
   end,
   
   -- =====================================================================
