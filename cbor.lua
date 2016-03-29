@@ -559,7 +559,7 @@ TAG = setmetatable(
     _bigfloat = function(value)
       assert(type(value)         == 'table',  "_bigfloat expects an array")
       assert(#value              == 2,        "_bigfloat expects a two item array")
-      assert(type(value[1])      == 'number', "_bigfloat expects a number as first element")
+      assert(math.type(value[1]) == 'integer',"_bigfloat expects an integer as first element")
       assert(math.type(value[2]) == 'integer',"_bigfloat expecta an integer as second element")
       return cbor5.encode(0xC0,5) .. TYPE.ARRAY(value)
     end,
