@@ -1250,34 +1250,34 @@ end
 
 -- ***********************************************************************
 
-local function generic(v)
-  local mt = getmetatable(v)
+local function generic(value)
+  local mt = getmetatable(value)
   if not mt then
-    if type(v) == 'table' then
-      if #v > 0 then
-        return TYPE.ARRAY(v)
+    if type(value) == 'table' then
+      if #value > 0 then
+        return TYPE.ARRAY(value)
       else
-        return TYPE.MAP(v)
+        return TYPE.MAP(value)
       end
     else
-      error(string.format("Cannot encode %s",type(v)))
+      error(string.format("Cannot encode %s",type(value)))
     end
   end
   
   if mt.__tocbor then
-    return mt.__tocbor(v)
+    return mt.__tocbor(value)
   
   elseif mt.__len then
-    return TYPE.ARRAY(v)
+    return TYPE.ARRAY(value)
     
   elseif _LUA_VERSION >= "Lua 5.2" and mt.__ipairs then
-    return TYPE.ARRAY(v)
+    return TYPE.ARRAY(value)
   
   elseif _LUA_VERSION >= "Lua 5.3" and mt.__pairs then
-    return TYPE.MAP(v)
+    return TYPE.MAP(value)
   
   else
-    error(string.format("Cannot encode %s",type(v)))
+    error(string.format("Cannot encode %s",type(value)))
   end
 end
 
@@ -1329,7 +1329,7 @@ __ENCODE_MAP =
     end
   end,
   
-  ['string'] = function(value)
+  ['string'] = function(value,sref,stref)
     if UTF8:match(value) > #value then
       return TYPE.TEXT(value)
     else
@@ -1350,8 +1350,8 @@ __ENCODE_MAP =
 -- Return:	blob (binary) CBOR encoded value
 -- ***********************************************************************
 
-function encode(value)
-  return __ENCODE_MAP[type(value)](value)
+function encode(value,sref,stref)
+  return __ENCODE_MAP[type(value)](value,sref,stref)
 end
 
 -- ***********************************************************************
