@@ -266,16 +266,24 @@ end
 
 
 -- ***********************************************************************
+-- usage:	blob = encbintext(value,sref,stref,ctype)
+-- desc:	Encode a string into a CBOR BIN or TYPE
+-- input:	value (string) Lua string to encode
+--		sref (table) shared references
+--		stref (table) string references
+--		ctype (integer) either 0x40 (BIN) or 0x60 (TEXT)
+-- return:	blob (binary) encoded string
+-- ***********************************************************************
 
 local function encbintext(value,sref,stref,ctype)
   if stref then
-    if #value >= mstrlen then
-      if not stref[value] then
+    if not stref[value] then
+      if #value >= mstrlen(stref) then
         table.insert(stref,value)
         stref[value] = #stref - 1
-      else
-        return TAG._nthstring(stref[value],sref,stref)
       end
+    else
+      return TAG._nthstring(stref[value],sref,stref)
     end
   end
   
@@ -288,9 +296,11 @@ end
 --
 -- Both encoding and decoding functions for CBOR base types are here.
 --
--- Usage:	blob = cbor.TYPE['name'](n)
+-- Usage:	blob = cbor.TYPE['name'](n,sref,stref)
 -- Desc:	Encode a CBOR base type
 -- Input:	n (integer string table) Lua type (see notes)
+--		sref (table/optional) shared reference table
+--		stref (table/optional) shared string reference table
 -- Return:	blob (binary) CBOR encoded value
 --
 -- Note:	UINT and NINT take an integer.
@@ -470,9 +480,11 @@ TYPE =
 --
 -- Encoding and decoding of CBOR TAG types are here.
 --
--- Usage:	blob = cbor.TAG['name'](value)
+-- Usage:	blob = cbor.TAG['name'](value,sref,stref)
 -- Desc:	Encode a CBOR tagged value
 -- Input:	value (any) any Lua type
+--		sref (table/optional) shared reference table
+--		stref (table/optional) shared string reference table
 -- Return:	blob (binary) CBOR encoded tagged value
 --
 -- Note:	Some tags only support a subset of Lua types.
@@ -974,7 +986,8 @@ TAG = setmetatable(
     -- I'm doing this because this also have to interact with _sharedref.
     -- =====================================================================
     
-    _stringref = function()
+    _stringref = function(_,_,stref)
+      stref.SEEN = true
       return cbor5.encode(0xC0,256)
     end,
     
@@ -1282,14 +1295,14 @@ end
 
 -- ***********************************************************************
 
-local function generic(value)
+local function generic(value,sref,stref)
   local mt = getmetatable(value)
   if not mt then
     if type(value) == 'table' then
       if #value > 0 then
-        return TYPE.ARRAY(value)
+        return TYPE.ARRAY(value,sref,stref)
       else
-        return TYPE.MAP(value)
+        return TYPE.MAP(value,sref,stref)
       end
     else
       error(string.format("Cannot encode %s",type(value)))
@@ -1297,16 +1310,16 @@ local function generic(value)
   end
   
   if mt.__tocbor then
-    return mt.__tocbor(value)
+    return mt.__tocbor(value,sref,stref)
   
   elseif mt.__len then
-    return TYPE.ARRAY(value)
+    return TYPE.ARRAY(value,sref,stref)
     
   elseif _LUA_VERSION >= "Lua 5.2" and mt.__ipairs then
-    return TYPE.ARRAY(value)
+    return TYPE.ARRAY(value,sref,stref)
   
   elseif _LUA_VERSION >= "Lua 5.3" and mt.__pairs then
-    return TYPE.MAP(value)
+    return TYPE.MAP(value,sref,stref)
   
   else
     error(string.format("Cannot encode %s",type(value)))
@@ -1330,9 +1343,11 @@ end
 --
 -- Otherwise, an error is thrown.
 --
--- Usage:	blob = cbor.__ENCODE_MAP[luatype](value)
+-- Usage:	blob = cbor.__ENCODE_MAP[luatype](value,sref,stref)
 -- Desc:	Encode a Lua type into a CBOR type
 -- Input:	value (any) a Lua value who's type matches luatype.
+--		sref (table/optional) shared reference table
+--		stref (table/optional) shared string reference table
 -- Return:	blob (binary) CBOR encoded data
 --
 -- ***********************************************************************
@@ -1376,17 +1391,19 @@ __ENCODE_MAP =
 }
 
 -- ***********************************************************************
--- Usage:	blob = cbor.encode(value)
+-- Usage:	blob = cbor.encode(value,sref,stref)
 -- Desc:	Encode a Lua type into a CBOR type
--- Input:	value (any) 
+-- Input:	value (any)
+--		sref (table/optional) shared reference table
+--		stref (table/optional) shared string reference table
 -- Return:	blob (binary) CBOR encoded value
 -- ***********************************************************************
 
 function encode(value,sref,stref)
   local res = ""
   
-  if stref then
-    res = TAG._stringref()
+  if stref and not stref.SEEN then
+    res = TAG._stringref(nil,nil,stref)
   end
   
   return res .. __ENCODE_MAP[type(value)](value,sref,stref)

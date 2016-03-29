@@ -48,7 +48,7 @@ end
 local function bintohex(bin)
   local hbin = ""
   for c in bin:gmatch(".") do
-    hbin = hbin .. string.format("%02X",string.byte(c))
+    hbin = hbin .. string.format("%02X ",string.byte(c))
   end
   return hbin
 end
@@ -97,7 +97,7 @@ local function test(ctype,hbinary,src,srcf,destf)
       encoded = cbor.encode(src)
     end
 
-    assertf(encoded == bin,"encoding for %s failed:\n%s\n%s",ctype,hbinary,bintohex(encoded))
+    assertf(encoded == bin,"encoding for %s failed:\n%s\n%s",ctype,bintohex(bin),bintohex(encoded))
   else
     print("SKIPPED encoding",ctype)
     encoded = bin
@@ -118,13 +118,13 @@ end
 
 -- ***********************************************************************
 
-local function rtst(ctype,src,f)
+local function rtst(ctype,src,f,sref,stref)
   local encode
   
   if f then
-    encode = f(src)
+    encode = f(src,sref,stref)
   else
-    encode = cbor.encode(src)
+    encode = cbor.encode(src,sref,stref)
   end
   
   local rctype,decode = cbor.decode(encode)
@@ -368,6 +368,7 @@ test('_magic_cbor',"D9D9F7","_magic_cbor",
 
 -- _stringref and _nthstring tests
 -- http://cbor.schmorp.de/stringref
+-- This is annoying to test.
 
 test('ARRAY',"d9010083a34472616e6b0445636f756e741901a1446e616d6548436f636b7461696ca3d819024442617468d81901190138d8190004a3d8190244466f6f64d819011902b3d8190004",
 	{
@@ -386,19 +387,88 @@ test('ARRAY',"d9010083a34472616e6b0445636f756e741901a1446e616d6548436f636b746169
 	    name = "Food",
 	    rank = 4
 	  },
-	},'SKIP')
+	},
+	function()
+	  local stref = {}
+	  return cbor.TAG._stringref(nil,nil,stref)
+	           .. cbor.TYPE.ARRAY(3)
+	              .. cbor.TYPE.MAP(3)
+	                 .. cbor.TYPE.BIN("rank",nil,stref)
+	                 .. cbor.encode(4,nil,stref)
+	                 .. cbor.TYPE.BIN("count",nil,stref)
+	                 .. cbor.encode(417,nil,stref)
+	                 .. cbor.TYPE.BIN("name",nil,stref)
+	                 .. cbor.TYPE.BIN("Cocktail",nil,stref)
+	                 
+	              .. cbor.TYPE.MAP(3)
+	                .. cbor.TYPE.BIN("name",nil,stref)
+	                .. cbor.TYPE.BIN("Bath",nil,stref)
+	                .. cbor.TYPE.BIN("count",nil,stref)
+	                .. cbor.encode(312,nil,stref)
+	                .. cbor.TYPE.BIN("rank",nil,stref)
+	                .. cbor.encode(4,nil,stref)
+	                
+	              .. cbor.TYPE.MAP(3)
+	                .. cbor.TYPE.BIN("name",nil,stref)
+	                .. cbor.TYPE.BIN("Food",nil,stref)
+	                .. cbor.TYPE.BIN("count",nil,stref)
+	                .. cbor.encode(691,nil,stref)
+	                .. cbor.TYPE.BIN("rank",nil,stref)
+	                .. cbor.encode(4,nil,stref)
+	end)
+
+rtst('ARRAY', {
+	  {
+	    name = 'Cocktail',
+	    count = 417,
+	    rank = 4,
+	  },
+	  {
+	    rank = 4,
+	    count = 312,
+	    name = "Bath",
+	  },
+	  {
+	    count = 691,
+	    name = "Food",
+	    rank = 4
+	  },
+	},nil,nil,{})
 
 -- NOTE: in the 2nd example, the JSON array and the binary CBOR
 -- representation don't match.  The JSON array here is fixed to match the
 -- actual binary presented.
 
 test('ARRAY',"d9010098204131433232324333333341344335353543363636433737374338383843393939436161614362626243636363436464644365656543666666436767674368686843696969436a6a6a436b6b6b436c6c6c436d6d6d436e6e6e436f6f6f4370707043717171437272724473737373d81901d8191743727272d8191818",
-	{  
+	{
 	  "1", "222", "333",   "4", "555", "666", "777", "888", "999",
 	  "aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg", "hhh", "iii",
 	  "jjj", "kkk", "lll", "mmm", "nnn", "ooo", "ppp", "qqq", "rrr",
 	  "ssss" , "333", "qqq", "rrr", "ssss" 
-	},'SKIP')
+	},
+	function()
+	  local data = 
+	  {
+	    "1", "222", "333",   "4", "555", "666", "777", "888", "999",
+	    "aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg", "hhh", "iii",
+	    "jjj", "kkk", "lll", "mmm", "nnn", "ooo", "ppp", "qqq", "rrr",
+	    "ssss" , "333", "qqq", "rrr", "ssss" 
+	  }
+	  
+	  local stref = {}
+	  local res = cbor.TAG._stringref(nil,nil,stref) .. cbor.TYPE.ARRAY(#data,nil,stref)
+	  for _,s in ipairs(data) do
+	    res = res .. cbor.TYPE.BIN(s,nil,stref)
+	  end
+	  return res
+	end)
+
+rtst('ARRAY', {
+	  "1", "222", "333",   "4", "555", "666", "777", "888", "999",
+	  "aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg", "hhh", "iii",
+	  "jjj", "kkk", "lll", "mmm", "nnn", "ooo", "ppp", "qqq", "rrr",
+	  "ssss" , "333", "qqq", "rrr", "ssss" 
+	},nil,nil,{})
 
 test('ARRAY',"d901008563616161d81900d90100836362626263616161d81901d901008263636363d81900d81900",
 	{ 
@@ -406,7 +476,27 @@ test('ARRAY',"d901008563616161d81900d90100836362626263616161d81901d9010082636363
 	  { "bbb" , "aaa" , "aaa" } , 
 	  { "ccc" , "ccc" } , 
 	  "aaa" 
-	},'SKIP')
+	},
+	function()
+	  local stref1 = {}
+	  local stref2 = {}
+	  local stref3 = {}
+	  
+	  return cbor.TAG._stringref(nil,nil,stref1)
+	      .. cbor.TYPE.ARRAY(5)
+	         .. cbor.encode("aaa",nil,stref1)
+	         .. cbor.encode("aaa",nil,stref1)
+	         .. cbor.TAG._stringref(nil,nil,stref2)
+	         .. cbor.TYPE.ARRAY(3)
+	            .. cbor.encode("bbb",nil,stref2)
+	            .. cbor.encode("aaa",nil,stref2)
+	            .. cbor.encode("aaa",nil,stref2)
+	         .. cbor.TAG._stringref(nil,nil,stref3)
+	         .. cbor.TYPE.ARRAY(2)
+	            .. cbor.encode("ccc",nil,stref3)
+	            .. cbor.encode("ccc",nil,stref3)
+	         .. cbor.encode("aaa",nil,stref1)
+	end)
 
 -- _perlobj
 
