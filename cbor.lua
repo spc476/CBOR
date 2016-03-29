@@ -667,7 +667,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _base64 = function(value)
-      return cbor5.encide(0xC0,34) .. TYPE.TEXT(value)
+      return cbor5.encode(0xC0,34) .. TYPE.TEXT(value)
     end,
     
     [34] = function(packet,pos,conv,ref)
