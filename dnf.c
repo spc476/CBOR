@@ -326,7 +326,7 @@ int dnf_todouble(double *const pd,dnf__s v)
   if ((v.frac & 0x0000000000000FFFuLL) != 0uLL)
     return EDOM;
   
-  d.i |= (uint64_t)((v.frac >> 11) & 0x000FFFFFFFFFFFFFuLL);
+  d.i |= (uint64_t)((v.frac >> 12) & 0x000FFFFFFFFFFFFFuLL);
   d.i |= v.sign ? 0x8000000000000000uLL : 0x0000000000000000uLL;
   *pd  = d.d;
   return 0;
