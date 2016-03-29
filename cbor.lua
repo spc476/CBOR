@@ -406,7 +406,7 @@ TYPE =
         return TAG._sharedref(sref[array],sref,stref)
       end
          
-      res = TAG._shareable(array,sref,stref)
+      res = TAG._shareable(array)
       table.insert(sref,array)
       sref[array] = #sref - 1
     end
@@ -830,7 +830,7 @@ TAG = setmetatable(
     -- sense, and TAGs aren't shareable either.  So ARRAY and MAP it is!
     -- =====================================================================
     
-    _shareable = function(value,sref,stref)
+    _shareable = function(value)
       assert(type(value) == 'table')
       return cbor5.encode(0xC0,28)
     end,
