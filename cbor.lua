@@ -965,8 +965,8 @@ TAG = setmetatable(
     _decimalfractionexp = function(value)
       assert(type(value) == 'table',"__decimalfractionexp expects an array")
       assert(#value == 2,"_decimalfractionexp expects a two item array")
-      assert(math.type(value[1]) == 'integer' or type(value[1]) == 'string')
-      assert(math.type(value[1]) == 'integer')
+      assert(type(value[1]) == 'string' or math.type(value[1]) == 'integer')
+      assert(math.type(value[2]) == 'integer')
       return cbor5.encode(0xC0,264) .. TYPE.ARRAY(value)
     end,
     
@@ -981,7 +981,7 @@ TAG = setmetatable(
         throw(pos,"_decimalfractionexp: wanted ARRAY(2), got ARRAY(%d)",#value)
       end
       
-      if math.type(value[1]) ~= 'integer' and type(value[1]) ~= 'string' then
+      if type(value[1]) ~= 'string' and math.type(value[1]) ~= 'integer' then
         throw(pos,"_decimalfractionexp: wanted integer or bignum for exp, got %s",type(value))
       end
       
@@ -997,8 +997,8 @@ TAG = setmetatable(
     _bigfloatexp = function(value)
       assert(type(value) == 'table',"__bigfloatexp expects an array")
       assert(#value == 2,"_bigfloatexp expects a two item array")
-      assert(type(value[1]) == 'number' or type(value[1]) == 'string')
-      assert(math.type(value[1]) == 'integer')
+      assert(type(value[1]) == 'string' or math.type(value[1]) == 'integer')
+      assert(math.type(value[2]) == 'integer')
       return cbor5.encode(0xC0,265) .. TYPE.ARRAY(value)
     
     end,
@@ -1014,7 +1014,7 @@ TAG = setmetatable(
         throw(pos,"_bigfloatexp: wanted ARRAY(2), got ARRAY(%d)",#value)
       end
       
-      if type(value[1]) ~= 'number' and type(value[1]) ~= 'string' then
+      if type(value[1]) ~= 'string' and math.type(value[1]) ~= 'integer' then
         throw(pos,"_bigfloatexp: wanted integer or bignum for exp, got %s",type(value))
       end
       
