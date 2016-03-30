@@ -87,6 +87,7 @@ local function test(ctype,hbinary,src,srcf,destf)
   local bin = hextobin(hbinary)
   local encoded
   
+  io.stdout:write("\tTesting ",ctype," ...") io.stdout:flush()
   if srcf ~= 'SKIP' then
     if srcf then
       encoded = srcf()
@@ -110,6 +111,7 @@ local function test(ctype,hbinary,src,srcf,destf)
     assertf(compare(src,decoded),"decoding for %s is different",ctype)
   end
   
+  io.stdout:write("GO\n")
   return true
 end
 
@@ -118,6 +120,7 @@ end
 local function rtst(ctype,src,f,sref,stref)
   local encode
   
+  io.stdout:write("\tTesting ",ctype," ...") io.stdout:flush()
   if f then
     encode = f(src,sref,stref)
   else
@@ -127,6 +130,7 @@ local function rtst(ctype,src,f,sref,stref)
   local rctype,decode = cbor.decode(encode)
   assertf(rctype == ctype,"decoding type failed: wanted %s got %s",ctype,rctype)
   assertf(compare(src,decode),"decoding for %s is different",ctype)
+  io.stdout:write("GO!\n")
 end
 
 -- ***********************************************************************
