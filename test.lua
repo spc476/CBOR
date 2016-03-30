@@ -601,3 +601,18 @@ test('_bigfloatexp',
 
 test('_indirection',"D95652820102" , { 1 , 2 },
 	function() return cbor.TAG._indirection { 1 , 2 } end)
+
+-- ***********************************************************************
+-- And now, test *both* types of references in the same structure ...
+-- ***********************************************************************
+
+local hoade  = { first = "Sean" , last = "Hoade"  , occupation = "writer" }
+local conner = { first = "Sean" , last = "Conner" , occupation = "programmer" }
+local array  = { hoade , hoade , hoade , conner , conner , conner }
+
+test('ARRAY',
+	"D90100D81C86D81CA3656669727374645365616E646C61737465486F6164656A6F636375706174696F6E66777269746572D81D01D81D01D81CA3D81900D81901D8190266436F6E6E6572D819046A70726F6772616D6D6572D81D02D81D02",
+	array,
+	function()
+	  return cbor.encode(array,{},{})
+	end)

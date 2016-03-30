@@ -448,6 +448,18 @@ TYPE =
       return cbor5.encode(0xA0,map)
     end
     
+    local ref = ""
+    
+    if sref then
+      if sref[map] then
+        return TAG._sharedref(sref[map],sref,stref)
+      end
+      
+      ref = TAG._shareable(map)
+      table.insert(sref,map)
+      sref[map] = #sref - 1
+    end
+    
     local res = ""
     local cnt = 0
     
@@ -457,7 +469,7 @@ TYPE =
       cnt = cnt + 1
     end
     
-    return cbor5.encode(0xA0,cnt) .. res
+    return ref .. cbor5.encode(0xA0,cnt) .. res
   end,
   
   [0xA0] = function(packet,pos,_,value,conv,ref)
