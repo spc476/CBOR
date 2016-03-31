@@ -108,15 +108,11 @@ local tonumber     = tonumber
 
 if LUA_VERSION == "Lua 5.1" then
   function math.type(n)
-    if n ~= n then
-      return 'float'
-    elseif n == math.huge or n == -math.huge then
-      return 'float'
-    elseif math.floor(n) == n then
-      return 'integer'
-    else
-      return 'float'
-    end
+    return n >= -9007199254740992
+       and n <=  9007199254740992
+       and n % 1 == 0
+       and 'integer'
+       or  'float'
   end
   
   module "cbor"
