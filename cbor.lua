@@ -95,7 +95,7 @@ local table    = require "table"
 local lpeg     = require "lpeg"
 local cbor5    = require "cbor5"
 
-local _LUA_VERSION = _VERSION
+local LUA_VERSION = _VERSION
 local error        = error
 local pcall        = pcall
 local assert       = assert
@@ -106,7 +106,7 @@ local ipairs       = ipairs
 local type         = type
 local tonumber     = tonumber
 
-if _LUA_VERSION == "Lua 5.1" then
+if LUA_VERSION == "Lua 5.1" then
   function math.type(n)
     if n ~= n then
       return 'float'
@@ -1340,10 +1340,10 @@ local function generic(value,sref,stref)
   elseif mt.__len then
     return TYPE.ARRAY(value,sref,stref)
     
-  elseif _LUA_VERSION >= "Lua 5.2" and mt.__ipairs then
+  elseif LUA_VERSION >= "Lua 5.2" and mt.__ipairs then
     return TYPE.ARRAY(value,sref,stref)
   
-  elseif _LUA_VERSION >= "Lua 5.3" and mt.__pairs then
+  elseif LUA_VERSION >= "Lua 5.3" and mt.__pairs then
     return TYPE.MAP(value,sref,stref)
   
   else
@@ -1436,6 +1436,6 @@ end
 
 -- ***********************************************************************
 
-if _LUA_VERSION >= "Lua 5.2" then
+if LUA_VERSION >= "Lua 5.2" then
   return _ENV
 end
