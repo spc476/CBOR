@@ -106,7 +106,7 @@ local ipairs       = ipairs
 local type         = type
 local tonumber     = tonumber
 
-if LUA_VERSION == "Lua 5.1" then
+if LUA_VERSION < "Lua 5.3" then
   function math.type(n)
     return n >= -9007199254740992
        and n <=  9007199254740992
@@ -114,7 +114,9 @@ if LUA_VERSION == "Lua 5.1" then
        and 'integer'
        or  'float'
   end
-  
+end
+
+if LUA_VERSION == "Lua 5.1" then
   module "cbor"
 else
   _ENV = {}
