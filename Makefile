@@ -36,7 +36,7 @@ override CFLAGS += -shared -fPIC -DVERSION='"$(VERSION)"'
 cbor5.so : cbor5.o dnf.o
 
 check:
-	luacheck cbor.lua test.lua
+	luacheck cbor.lua test.lua cbor_s.lua test_s.lua cbormisc.lua
 
 clean:
 	$(RM) *~ *.so *.o
