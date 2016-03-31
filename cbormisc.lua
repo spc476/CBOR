@@ -21,7 +21,7 @@
 --
 -- Output in the CBOR dianostic format
 --
--- luacheck: globals TYPE TAG SIMPLE diagnostic
+-- luacheck: globals _ENV TYPE TAG SIMPLE diagnostic
 -- ***************************************************************
 
 local safestring = require "org.conman.table".safestring
