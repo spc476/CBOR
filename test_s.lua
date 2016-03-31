@@ -175,16 +175,16 @@ test('true',"F5",true)
 test('null',"F6",nil)
 
 test('UINT',"c11a514b67b0",1363896240,
-	function() return cbor.encode_tag(1,1363896240) end)
+	function() return cbor.encode(1363896240,1) end)
 test('double',"c1fb41d452d9ec200000",1363896240.5,
-	function() return cbor.encode_tag(1,1363896240.5) end)
+	function() return cbor.encode(1363896240.5,1) end)
 test('BIN',"d74401020304","\1\2\3\4", 	-- RFC wrong here
-	function() return cbor.encode_tag(23,"\1\2\3\4") end)
+	function() return cbor.encode("\1\2\3\4",23) end)
 test('TEXT',"d818656449455446","dIETF", -- modified slightly from RFC
-	function() return cbor.encode_tag(24,cbor.encode("IETF")) end)
+	function() return cbor.encode(cbor.encode("IETF"),24) end)
 test('TEXT',"d82076687474703a2f2f7777772e6578616d706c652e636f6d",
 	"http://www.example.com",
-	function() return cbor.encode_tag(32,"http://www.example.com") end)
+	function() return cbor.encode("http://www.example.com",32) end)
 test('BIN',"4401020304","\1\2\3\4")
 test('TEXT',"60","")
 test('TEXT',"6161","a")

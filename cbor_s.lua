@@ -247,14 +247,12 @@ local ENCODE_MAP =
 
 -- ***************************************************************
 
-function encode(value)
-  return ENCODE_MAP[type(value)](value)
-end
-
--- ***************************************************************
-
-function encode_tag(tag,value)
-  return cbor5.encode(0xC0,tag) .. encode(value)
+function encode(value,tag)
+  if tag then
+    return cbor5.encode(0xC0,tag) .. ENCODE_MAP[type(value)](value)
+  else
+    return ENCODE_MAP[type(value)](value)
+  end
 end
 
 -- ***************************************************************
