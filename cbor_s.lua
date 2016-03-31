@@ -21,7 +21,7 @@
 --
 -- A simpler CBOR encoding/decoding module
 --
--- luacheck: globals _ENV _VERSION decode encode encode_tag encode_float
+-- luacheck: globals _ENV _VERSION decode encode
 -- ***************************************************************
 
 local math  = require "math"
@@ -37,16 +37,12 @@ local pairs        = pairs
 local type         = type
 
 if LUA_VERSION < "Lua 5.3" then
-  function math.type(n)
-    if n ~= n then
-      return 'float'
-    elseif n == math.huge or n == -math.huge then
-      return 'float'
-    elseif math.floor(n) == n then
-      return 'integer'
-    else
-      return 'float'
-    end
+  function math.type(n)    
+    return n >= -9007199254740992 
+       and n <=  9007199254740992 
+       and n % 1 == 0
+       and 'integer'
+       or  'float'
   end
 end
 
@@ -253,12 +249,6 @@ function encode(value,tag)
   else
     return ENCODE_MAP[type(value)](value)
   end
-end
-
--- ***************************************************************
-
-function encode_float(value)
-  return cbor5.encode(0xE0,nil,value)
 end
 
 -- ***************************************************************
