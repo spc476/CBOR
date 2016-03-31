@@ -29,10 +29,15 @@ local string     = require "string"
 local math       = require "math"
 local cbor5      = require "cbor5"
 
+local _VERSION     = _VERSION
 local setmetatable = setmetatable
 local tostring     = tostring
 
-module("cbormisc")
+if _VERSION == "Lua 5.1" then
+  module("cbormisc")
+else
+  _ENV = {}
+end
 
 -- ***************************************************************
 
@@ -215,4 +220,10 @@ function diagnostic(packet,pos)
   
   local ctype,info,value,npos = cbor5.decode(packet,pos)
   return TYPE[ctype](packet,npos,info,value)
+end
+
+-- ***************************************************************
+
+if _VERSION > "Lua 5.1" then
+  return _ENV
 end
