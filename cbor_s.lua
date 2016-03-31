@@ -69,9 +69,9 @@ local function bintext(packet,pos,info,value,ctype)
   if info == 31 then
     local res = ""
     while true do
-      local ltype,nvalue,npos = decode(packet,pos)
-      if ltype == '__break' then
-        return ctype,res,npos
+      local nvalue,npos,ctype = decode(packet,pos)
+      if ctype == '__break' then 
+        return res,npos,ctype
       end
       res = res .. nvalue
       pos = npos
@@ -79,25 +79,25 @@ local function bintext(packet,pos,info,value,ctype)
   end
   
   local bt = packet:sub(pos,pos + value - 1)
-  return ctype,bt,pos + value
+  return bt,pos + value,ctype
 end
 
 -- ***************************************************************
 
 local SIMPLE = setmetatable(
   {
-    [20] = function(_,pos)     return 'false'    ,false,pos end,
-    [21] = function(_,pos)     return 'true'     ,true ,pos end,
-    [22] = function(_,pos)     return 'null'     ,nil  ,pos end,
-    [23] = function(_,pos)     return 'undefined',nil  ,pos end,
-    [25] = function(value,pos) return 'half'     ,value,pos end,
-    [26] = function(value,pos) return 'single'   ,value,pos end,
-    [27] = function(value,pos) return 'double'   ,value,pos end,
-    [31] = function(_,pos)     return '__break'  ,false,pos end,
+    [20] = function(_,pos)     return false,pos,'false'     end,
+    [21] = function(_,pos)     return true ,pos,'true'      end,
+    [22] = function(_,pos)     return nil  ,pos,'null'      end,
+    [23] = function(_,pos)     return nil  ,pos,'undefined' end,
+    [25] = function(value,pos) return value,pos,'half'      end,
+    [26] = function(value,pos) return value,pos,'single'    end,
+    [27] = function(value,pos) return value,pos,'double'    end,
+    [31] = function(_,pos)     return false,pos,'__break'   end,
   },
   {
     __index = function()
-      return function(value,pos) return 'SIMPLE',value,pos end
+      return function(value,pos) return value,pos end
     end
   }
 )
@@ -107,11 +107,11 @@ local SIMPLE = setmetatable(
 local TYPE =
 {
   [0x00] = function(_,pos,_,value)
-    return 'UINT',value,pos
+    return value,pos,'UINT'
   end,
   
   [0x20] = function(_,pos,_,value)
-    return 'NINT',-1 - value,pos
+    return -1 - value,pos,'NINT'
   end,
   
   [0x40] = function(packet,pos,info,value)
@@ -125,32 +125,32 @@ local TYPE =
   [0x80] = function(packet,pos,_,value,conv)
     local array = {}
     for _ = 1 , value do
-      local ctype,val,npos = decode(packet,pos,conv)
+      local val,npos,ctype = decode(packet,pos,conv)
       if ctype == '__break' then break end
       table.insert(array,val)
       pos = npos
     end
-    return 'ARRAY',array,pos
+    return array,pos,'ARRAY'
   end,
   
   [0xA0] = function(packet,pos,_,value,conv)
     local map = {}
     for _ = 1 , value do
-      local ntype,name,npos = decode(packet,pos,conv)
-      if ntype == '__break' then break end
-      local _,val,npos2 = decode(packet,npos,conv)
+      local name,npos,ctype = decode(packet,pos,conv)
+      if ctype == '__break' then break end
+      local val,npos2 = decode(packet,npos,conv)
       map[name] = val;
       pos = npos2
     end
-    return 'MAP',map,pos
+    return map,pos,'MAP'
   end,
   
   [0xC0] = function(packet,pos,_,value,conv)
-    local ctype,val,npos = decode(packet,pos,conv)
+    local val,npos,ctype = decode(packet,pos,conv)
     if conv and conv[value] then
       val = conv[value](val)
     end
-    return ctype,val,npos
+    return val,npos,ctype
   end,
   
   [0xE0] = function(_,pos,info,value)
