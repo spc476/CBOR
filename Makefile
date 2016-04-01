@@ -25,10 +25,11 @@ VERSION = $(shell git describe --tag)
 
 CC      = gcc -std=c99 -Wall -Wextra -pedantic
 CFLAGS  = -g
-LDFLAGS = -shared -fPIC
+LDFLAGS = -g
 LDLIBS  =
 
-override CFLAGS += -shared -fPIC -DVERSION='"$(VERSION)"'
+override CFLAGS  += -fPIC -DVERSION='"$(VERSION)"'
+override LDFLAGS += -shared
 
 %.so :
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
