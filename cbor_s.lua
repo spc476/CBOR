@@ -97,7 +97,7 @@ local SIMPLE = setmetatable(
   },
   {
     __index = function()
-      return function(value,pos) return value,pos end
+      return function(pos,value) return value,pos end
     end
   }
 )
