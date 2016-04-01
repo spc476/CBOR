@@ -101,7 +101,7 @@ local function test(ctype,hbinary,src,srcf,destf)
     encoded = bin
   end
   
-  local rctype,decoded = cbor.decode(encoded)
+  local decoded,_,rctype = cbor.decode(encoded)
   
   assertf(rctype == ctype,"decoding type failed: wanted %s got %s",ctype,rctype)
   
@@ -127,7 +127,7 @@ local function rtst(ctype,src,f,sref,stref)
     encode = cbor.encode(src,sref,stref)
   end
   
-  local rctype,decode = cbor.decode(encode)
+  local decode,_,rctype = cbor.decode(encode)
   assertf(rctype == ctype,"decoding type failed: wanted %s got %s",ctype,rctype)
   assertf(compare(src,decode),"decoding for %s is different",ctype)
   io.stdout:write("GO!\n")

@@ -241,14 +241,14 @@ local function decbintext(packet,pos,info,value,conv,ref,ctype)
         ref._stringref[data] = true
       end
     end
-    return ctype,data,pos + value
+    return data,pos + value,ctype
     
   else
     local acc = {}
     local t,nvalue
     
     while true do
-      t,nvalue,pos = decode(packet,pos,conv,ref)
+      nvalue,pos,t = decode(packet,pos,conv,ref)
       if t == '__break' then
         break;
       end
@@ -258,7 +258,7 @@ local function decbintext(packet,pos,info,value,conv,ref,ctype)
       table.insert(acc,nvalue)
     end
     
-    return ctype,table.concat(acc),pos
+    return table.concat(acc),pos,ctype
   end
 end
 
@@ -345,7 +345,7 @@ TYPE =
   
   [0x00] = function(_,pos,info,value)
     if info == 31 then throw(pos,"invalid data") end
-    return 'UINT',value,pos
+    return value,pos,'UINT'
   end,
   
   -- =====================================================================
@@ -356,7 +356,7 @@ TYPE =
   
   [0x20] = function(_,pos,info,value)
     if info == 31 then throw(pos,"invalid data") end
-    return 'NINT',-1 - value,pos
+    return -1 - value,pos,'NINT'
   end,
   
   -- =====================================================================
@@ -429,12 +429,12 @@ TYPE =
     local acc = ref._sharedref.REF or {}
     
     for i = 1 , value do
-      local ctype,avalue,npos = decode(packet,pos,conv,ref)
-      if ctype == '__break' then return 'ARRAY',acc,npos end
+      local avalue,npos,ctype = decode(packet,pos,conv,ref)
+      if ctype == '__break' then return acc,npos,'ARRAY' end
       acc[i] = avalue
       pos    = npos
     end
-    return 'ARRAY',acc,pos
+    return acc,pos,'ARRAY'
   end,
   
   -- =====================================================================
@@ -473,13 +473,13 @@ TYPE =
   [0xA0] = function(packet,pos,_,value,conv,ref)
     local acc = ref._sharedref.REF or {} -- see comment above
     for _ = 1 , value do
-      local nctype,nvalue,npos = decode(packet,pos,conv,ref,true)
-      if nctype == '__break' then return 'MAP',acc,npos end
-      local _,vvalue,npos2 = decode(packet,npos,conv,ref)
+      local nvalue,npos,nctype = decode(packet,pos,conv,ref,true)
+      if nctype == '__break' then return acc,npos,'MAP' end
+      local vvalue,npos2 = decode(packet,npos,conv,ref)
       acc[nvalue] = vvalue
       pos         = npos2
     end
-    return 'MAP',acc,pos
+    return acc,pos,'MAP'
   end,
   
   -- =====================================================================
@@ -530,9 +530,9 @@ TAG = setmetatable(
     end,
     
     [0] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'TEXT' then
-        return '_datetime',value,npos
+        return value,npos,'_datetime'
       else
         throw(pos,"_datetime: wanted TEXT, got %s",ctype)
       end
@@ -546,9 +546,9 @@ TAG = setmetatable(
     end,
     
     [1] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if isnumber(ctype) then
-        return '_epoch',value,npos
+        return value,npos,'_epoch'
       else
         throw(pos,"_epoch: wanted number, got %s",ctype)
       end
@@ -561,9 +561,9 @@ TAG = setmetatable(
     end,
     
     [2] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'BIN' then
-        return '_pbignum',value,npos
+        return value,npos,'_pbignum'
       else
         throw(pos,"_pbignum: wanted BIN, got %s",ctype)
       end
@@ -576,9 +576,9 @@ TAG = setmetatable(
     end,
     
     [3] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'BIN' then
-        return '_nbignum',value,npos
+        return value,npos,'_nbignum'
       else
         throw(pos,"_nbignum: wanted BIN, got %s",ctype)
       end
@@ -595,7 +595,7 @@ TAG = setmetatable(
     end,
     
     [4] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       
       if ctype ~= 'ARRAY' then 
         throw(pos,"_decimalfraction: wanted ARRAY, got %s",ctype)
@@ -613,7 +613,7 @@ TAG = setmetatable(
         throw(pos,"_decimalfraction: wanted integer for mantissa, got %s",type(value[2]))
       end
       
-      return '_decimalfraction',value,npos
+      return value,npos,'_decimalfraction'
     end,
     
     -- =====================================================================
@@ -627,7 +627,7 @@ TAG = setmetatable(
     end,
     
     [5] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       
       if ctype ~= 'ARRAY' then
         throw(pos,"_bigfloat: wanted ARRAY, got %s",ctype)
@@ -645,7 +645,7 @@ TAG = setmetatable(
         throw(pos,"_bigfloat: wanted integer for mantissa, got %s",ctype)
       end
       
-      return '_bigfloat',value,npos
+      return value,npos,'_bigfloat'
     end,
     
     -- =====================================================================
@@ -655,8 +655,8 @@ TAG = setmetatable(
     end,
     
     [21] = function(packet,pos,conv,ref)
-      local _,value,npos = decode(packet,pos,conv,ref)
-      return '_tobase64url',value,npos
+      local value,npos = decode(packet,pos,conv,ref)
+      return value,npos,'_tobase64url'
     end,
     
     -- =====================================================================
@@ -666,8 +666,8 @@ TAG = setmetatable(
     end,
     
     [22] = function(packet,pos,conv,ref)
-      local _,value,npos = decode(packet,pos,conv,ref)
-      return '_tobase64',value,npos
+      local value,npos = decode(packet,pos,conv,ref)
+      return value,npos,'_tobase64'
     end,
     
     -- =====================================================================
@@ -677,8 +677,8 @@ TAG = setmetatable(
     end,
     
     [23] = function(packet,pos,conv,ref)
-      local _,value,npos = decode(packet,pos,conv,ref)
-      return '_tobase16',value,npos
+      local value,npos = decode(packet,pos,conv,ref)
+      return value,npos,'_tobase16'
     end,
     
     -- =====================================================================
@@ -688,9 +688,9 @@ TAG = setmetatable(
     end,
     
     [24] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'BIN' then
-        return '_cbor',value,npos
+        return value,npos,'_cbor'
       else
         throw(pos,"_cbor: wanted BIN, got %s",ctype)
       end
@@ -703,9 +703,9 @@ TAG = setmetatable(
     end,
     
     [32] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'TEXT' then
-        return '_url',value,npos
+        return value,npos,'_url'
       else
         throw(pos,"_url: wanted TEXT, got %s",ctype)
       end
@@ -718,9 +718,9 @@ TAG = setmetatable(
     end,
     
     [33] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'TEXT' then
-        return '_base64url',value,npos
+        return value,npos,'_base64url'
       else
         throw(pos,"_base64url: wanted TEXT, got %s",ctype)
       end
@@ -733,9 +733,9 @@ TAG = setmetatable(
     end,
     
     [34] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'TEXT' then
-        return '_base64',value,npos
+        return value,npos,'_base64'
       else
         throw(pos,"_base64: wanted TEXT, got %s",ctype)
       end
@@ -748,9 +748,9 @@ TAG = setmetatable(
     end,
     
     [35] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'TEXT' then
-        return '_regex',value,npos
+        return value,npos,'_regex'
       else
         throw(pos,"_regex: wanted TEXT, got %s",ctype)
       end
@@ -763,9 +763,9 @@ TAG = setmetatable(
     end,
     
     [36] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'TEXT' then
-        return '_mime',value,npos
+        return value,npos,'_mime'
       else
         throw(pos,"_mime: wanted TEXT, got %s",ctype)
       end
@@ -778,7 +778,7 @@ TAG = setmetatable(
     end,
     
     [55799] = function(_,pos)
-      return '_magic_cbor','_magic_cbor',pos
+      return '_magic_cbor',pos,'_magic_cbor'
     end,
     
     -- **********************************************************
@@ -791,13 +791,13 @@ TAG = setmetatable(
     end,
     
     [25] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'UINT' then
         value = value + 1
         if not ref._stringref[value] then
           throw(pos,"_nthstring: invalid index %d",value - 1)
         end
-        return ref._stringref[value].ctype,ref._stringref[value].value,npos
+        return ref._stringref[value].value,npos,ref._stringref[value].ctype
       else
         throw(pos,"_nthstring: wanted UINT, got %s",ctype)
       end
@@ -810,9 +810,9 @@ TAG = setmetatable(
     end,
     
     [26] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'ARRAY' then
-        return '_perlobj',value,npos
+        return value,npos,'_perlobj'
       else
         throw(pos,"_perlobj: wanted ARRAY, got %s",ctype)
       end
@@ -825,9 +825,9 @@ TAG = setmetatable(
     end,
     
     [27] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'ARRAY' then
-        return '_serialobj',value,npos
+        return value,npos,'_serialobj'
       else
         throw(pos,"_serialobj: wanted ARRAY, got %s",ctype)
       end
@@ -848,10 +848,10 @@ TAG = setmetatable(
     [28] = function(packet,pos,conv,ref)
       ref._sharedref.REF = {}
       table.insert(ref._sharedref,{ value = ref._sharedref.REF })
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'ARRAY' or ctype == 'MAP' then
         ref._sharedref[#ref._sharedref].ctype = ctype
-        return ctype,value,npos
+        return value,npos,ctype
       else
         throw(pos,"_shareable: wanted ARRAY or MAP, got %s",ctype)
       end
@@ -864,13 +864,13 @@ TAG = setmetatable(
     end,
     
     [29] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'UINT' then
         value = value + 1
         if not ref._sharedref[value] then
           throw(pos,"_sharedref: invalid index %d",value - 1)
         end
-        return ref._sharedref[value].ctype,ref._sharedref[value].value,npos
+        return ref._sharedref[value].value,npos,ref._sharedref[value].ctype
       else
         throw(pos,"_sharedref: wanted ARRAY or MAP, got %s",ctype)
       end
@@ -915,7 +915,7 @@ TAG = setmetatable(
     end,
     
     [30] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       
       if ctype ~= 'ARRAY' then
         throw(pos,"_rational wanted ARRAY, got %s",ctype)
@@ -937,7 +937,7 @@ TAG = setmetatable(
         throw(pos,"_rational: wanted >1 for demoninator")
       end
       
-      return '_rational',value,npos
+      return value,npos,'_rational'
     end,
     
     -- =====================================================================
@@ -949,12 +949,12 @@ TAG = setmetatable(
     end,
     
     [37] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype == 'BIN' then
         if #value ~= 16 then
           throw(pos,"_uuid: invalid data for UUID")
         end
-        return '_uuid',value,npos
+        return value,npos,'_uuid'
       else
         throw(pos,"_uuid: wanted BIN, got %s",ctype)
       end 
@@ -972,7 +972,7 @@ TAG = setmetatable(
     end,
     
     [38] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       if ctype ~= 'ARRAY' then
         throw(pos,"_language: wanted ARRAY, got %s",ctype)
       end
@@ -989,7 +989,7 @@ TAG = setmetatable(
         throw(pos,"_language: wanted TEXT for text");
       end
       
-      return '_language',value,npos
+      return value,npos,'_language'
     end,
     
     -- =====================================================================
@@ -999,8 +999,8 @@ TAG = setmetatable(
     end,
     
     [39] = function(packet,pos,conv,ref)
-      local _,value,npos = decode(packet,pos,conv,ref)
-      return '_id',value,npos
+      local value,npos = decode(packet,pos,conv,ref)
+      return value,npos,'_id'
     end,
     
     -- =====================================================================
@@ -1017,9 +1017,9 @@ TAG = setmetatable(
     [256] = function(packet,pos,conv,ref)
       local prev = ref._stringref
       ref._stringref = {}
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       ref._stringref = prev
-      return ctype,value,npos
+      return value,npos,ctype
     end,
     
     -- =====================================================================
@@ -1029,8 +1029,8 @@ TAG = setmetatable(
     end,
     
     [257] = function(packet,pos,conv,ref)
-      local _,value,npos = decode(packet,pos,conv,ref)
-      return '_bmime',value,npos
+      local value,npos = decode(packet,pos,conv,ref)
+      return value,npos,'_bmime'
     end,
     
     -- =====================================================================
@@ -1044,7 +1044,7 @@ TAG = setmetatable(
     end,
     
     [264] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       
       if ctype ~= 'ARRAY' then
         throw(pos,"_decimalfractionexp: wanted ARRAY, got %s",ctype)
@@ -1062,7 +1062,7 @@ TAG = setmetatable(
         throw(pos,"_decimalfractionexp: wanted integer or mantissa, got %s",type(value))
       end
       
-      return '_decimalfractionexp',value,npos
+      return value,npos,'_decimalfractionexp'
     end,
     
     -- =====================================================================
@@ -1077,7 +1077,7 @@ TAG = setmetatable(
     end,
     
     [265] = function(packet,pos,conv,ref)
-      local ctype,value,npos = decode(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
       
       if ctype ~= 'ARRAY' then
         throw(pos,"_bigfloatexp: wanted ARRAY, got %s",ctype)
@@ -1095,7 +1095,7 @@ TAG = setmetatable(
         throw(pos,"_bigfloatexp: wanted integer or mantissa, got %s",type(value))
       end
       
-      return '_bigfloatexp',value,npos    
+      return value,npos,'_bigfloatexp'
     end,
     
     -- =====================================================================
@@ -1105,16 +1105,16 @@ TAG = setmetatable(
     end,
     
     [22098] = function(packet,pos,conv,ref)
-      local _,value,npos = decode(packet,pos,conv,ref)
-      return '_indirection',value,npos
+      local value,npos = decode(packet,pos,conv,ref)
+      return value,npos,'_indirection'
     end,
   },
   {
     __index = function(_,key)
       if type(key) == 'number' then
         return function(packet,pos,conv,ref)
-          local _,value,npos = decode(packet,pos,conv,ref)
-          return string.format('TAG_%d',key),value,npos
+          local value,npos = decode(packet,pos,conv,ref)
+          return value,npos,string.format('TAG_%d',key)
         end
         
       elseif type(key) == 'string' then
@@ -1165,7 +1165,7 @@ SIMPLE = setmetatable(
     end,
     
     [20] = function(pos)
-      return 'false',false,pos
+      return false,pos,'false'
     end,
     
     -- =====================================================================
@@ -1175,7 +1175,7 @@ SIMPLE = setmetatable(
     end,
     
     [21] = function(pos)
-      return 'true',true,pos
+      return true,pos,'true'
     end,
     
     -- =====================================================================
@@ -1185,7 +1185,7 @@ SIMPLE = setmetatable(
     end,
     
     [22] = function(pos)
-      return 'null',nil,pos
+      return nil,pos,'null'
     end,
     
     -- =====================================================================
@@ -1195,7 +1195,7 @@ SIMPLE = setmetatable(
     end,
     
     [23] = function(pos)
-      return 'undefined',nil,pos
+      return nil,pos,'undefined'
     end,
     
     -- =====================================================================
@@ -1205,7 +1205,7 @@ SIMPLE = setmetatable(
     end,
     
     [25] = function(pos,value)
-      return 'half',value,pos
+      return value,pos,'half'
     end,
     
     -- =====================================================================
@@ -1215,7 +1215,7 @@ SIMPLE = setmetatable(
     end,
     
     [26] = function(pos,value)
-      return 'single',value,pos
+      return value,pos,'single'
     end,
     
     -- =====================================================================
@@ -1225,7 +1225,7 @@ SIMPLE = setmetatable(
     end,
     
     [27] = function(pos,value)
-      return 'double',value,pos
+      return value,pos,'double'
     end,
     
     -- =====================================================================
@@ -1235,14 +1235,14 @@ SIMPLE = setmetatable(
     end,
     
     [31] = function(pos)
-      return '__break',math.huge,pos
+      return math.huge,pos,'__break'
     end,
   },
   {
     __index = function(_,key)
       if type(key) == 'number' then
         return function(pos,value)
-          return 'SIMPLE',value,pos
+          return value,pos,'SIMPLE'
         end
         
       elseif type(key) == 'string' then
@@ -1304,15 +1304,15 @@ function decode(packet,pos,conv,ref,iskey)
   conv = conv or {}
   ref  = ref  or { _stringref = {} , _sharedref = {} }
   
-  local okay,ctype,value,npos = pcall(decode1,packet,pos,conv,ref)
+  local okay,value,npos,ctype = pcall(decode1,packet,pos,conv,ref)
   
   if okay then
     if conv[ctype] then
       value = conv[ctype](value,iskey)
     end
-    return ctype,value,npos
+    return value,npos,ctype
   else
-    return '__error',ctype,pos
+    return nil,pos,'__error'
   end
 end
 
