@@ -69,8 +69,8 @@ local function bintext(packet,pos,info,value,ctype)
   if info == 31 then
     local res = ""
     while true do
-      local nvalue,npos,ctype = decode(packet,pos)
-      if ctype == '__break' then 
+      local nvalue,npos,ntype = decode(packet,pos)
+      if ntype == '__break' then 
         return res,npos,ctype
       end
       res = res .. nvalue
