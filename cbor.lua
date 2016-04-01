@@ -93,7 +93,7 @@ local math     = require "math"
 local string   = require "string"
 local table    = require "table"
 local lpeg     = require "lpeg"
-local cbor5    = require "cbor5"
+local cbor_c   = require "cbor_c"
 
 local LUA_VERSION = _VERSION
 local error        = error
@@ -122,7 +122,7 @@ else
   _ENV = {}
 end
 
-_VERSION = cbor5._VERSION
+_VERSION = cbor_c._VERSION
 
 -- ***********************************************************************
 
@@ -285,7 +285,7 @@ local function encbintext(value,sref,stref,ctype)
     end
   end
   
-  return cbor5.encode(ctype,#value) .. value
+  return cbor_c.encode(ctype,#value) .. value
 end
 
 -- ***********************************************************************
@@ -340,7 +340,7 @@ end
 TYPE =
 {
   UINT = function(n)
-    return cbor5.encode(0x00,n)
+    return cbor_c.encode(0x00,n)
   end,
   
   [0x00] = function(_,pos,info,value)
@@ -351,7 +351,7 @@ TYPE =
   -- =====================================================================
   
   NINT = function(n)
-    return cbor5.encode(0x20,-1 - n)
+    return cbor_c.encode(0x20,-1 - n)
   end,
   
   [0x20] = function(_,pos,info,value)
@@ -394,7 +394,7 @@ TYPE =
     if not array then
       return "\159"
     elseif type(array) == 'number' then
-      return cbor5.encode(0x80,array)
+      return cbor_c.encode(0x80,array)
     end
     
     local res = ""
@@ -409,7 +409,7 @@ TYPE =
       sref[array] = #sref - 1
     end
     
-    res = res .. cbor5.encode(0x80,#array)
+    res = res .. cbor_c.encode(0x80,#array)
     for _,item in ipairs(array) do
       res = res .. encode(item,sref,stref)
     end
@@ -443,7 +443,7 @@ TYPE =
     if not map then
       return "\191"
     elseif type(map) == 'number' then
-      return cbor5.encode(0xA0,map)
+      return cbor_c.encode(0xA0,map)
     end
     
     local ref = ""
@@ -467,7 +467,7 @@ TYPE =
       cnt = cnt + 1
     end
     
-    return ref .. cbor5.encode(0xA0,cnt) .. res
+    return ref .. cbor_c.encode(0xA0,cnt) .. res
   end,
   
   [0xA0] = function(packet,pos,_,value,conv,ref)
@@ -526,7 +526,7 @@ TYPE =
 TAG = setmetatable(
   {
     _datetime = function(value)
-      return cbor5.encode(0xC0,0) .. TYPE.TEXT(value)
+      return cbor_c.encode(0xC0,0) .. TYPE.TEXT(value)
     end,
     
     [0] = function(packet,pos,conv,ref)
@@ -542,7 +542,7 @@ TAG = setmetatable(
     
     _epoch = function(value,sref,stref)
       assert(type(value) == 'number',"_epoch expects a number")
-      return cbor5.encode(0xC0,1) .. encode(value,sref,stref)
+      return cbor_c.encode(0xC0,1) .. encode(value,sref,stref)
     end,
     
     [1] = function(packet,pos,conv,ref)
@@ -557,7 +557,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _pbignum = function(value,sref,stref)
-      return cbor5.encode(0xC0,2) .. TYPE.BIN(value,sref,stref)
+      return cbor_c.encode(0xC0,2) .. TYPE.BIN(value,sref,stref)
     end,
     
     [2] = function(packet,pos,conv,ref)
@@ -572,7 +572,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _nbignum = function(value,sref,stref)
-      return cbor5.encode(0xC0,3) .. TYPE.BIN(value,sref,stref)
+      return cbor_c.encode(0xC0,3) .. TYPE.BIN(value,sref,stref)
     end,
     
     [3] = function(packet,pos,conv,ref)
@@ -591,7 +591,7 @@ TAG = setmetatable(
       assert(#value         == 2,       "_decimalfraction expects a two item array")
       assert(math.type(value[1]) == 'integer',"_decimalfraction expects integer as first element")
       assert(math.type(value[2]) == 'integer',"_decimalfraction expects integer as second element")
-      return cbor5.encode(0xC0,4) .. TYPE.ARRAY(value,sref,stref)
+      return cbor_c.encode(0xC0,4) .. TYPE.ARRAY(value,sref,stref)
     end,
     
     [4] = function(packet,pos,conv,ref)
@@ -623,7 +623,7 @@ TAG = setmetatable(
       assert(#value              == 2,        "_bigfloat expects a two item array")
       assert(math.type(value[1]) == 'integer',"_bigfloat expects an integer as first element")
       assert(math.type(value[2]) == 'integer',"_bigfloat expecta an integer as second element")
-      return cbor5.encode(0xC0,5) .. TYPE.ARRAY(value,sref,stref)
+      return cbor_c.encode(0xC0,5) .. TYPE.ARRAY(value,sref,stref)
     end,
     
     [5] = function(packet,pos,conv,ref)
@@ -651,7 +651,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _tobase64url = function(value,sref,stref)
-      return cbor5.encode(0xC0,21) .. encode(value,sref,stref)
+      return cbor_c.encode(0xC0,21) .. encode(value,sref,stref)
     end,
     
     [21] = function(packet,pos,conv,ref)
@@ -662,7 +662,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _tobase64 = function(value,sref,stref)
-      return cbor5.encode(0xC0,22) .. encode(value,sref,stref)
+      return cbor_c.encode(0xC0,22) .. encode(value,sref,stref)
     end,
     
     [22] = function(packet,pos,conv,ref)
@@ -673,7 +673,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _tobase16 = function(value,sref,stref)
-      return cbor5.encode(0xC0,23) .. encode(value,sref,stref)
+      return cbor_c.encode(0xC0,23) .. encode(value,sref,stref)
     end,
     
     [23] = function(packet,pos,conv,ref)
@@ -684,7 +684,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _cbor = function(value,sref,stref)
-      return cbor5.encode(0xC0,24) .. TYPE.BIN(value,sref,stref)
+      return cbor_c.encode(0xC0,24) .. TYPE.BIN(value,sref,stref)
     end,
     
     [24] = function(packet,pos,conv,ref)
@@ -699,7 +699,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _url = function(value,sref,stref)
-      return cbor5.encode(0xC0,32) .. TYPE.TEXT(value,sref,stref)
+      return cbor_c.encode(0xC0,32) .. TYPE.TEXT(value,sref,stref)
     end,
     
     [32] = function(packet,pos,conv,ref)
@@ -714,7 +714,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _base64url = function(value,sref,stref)
-      return cbor5.encode(0xC0,33) .. TYPE.TEXT(value,sref,stref)
+      return cbor_c.encode(0xC0,33) .. TYPE.TEXT(value,sref,stref)
     end,
     
     [33] = function(packet,pos,conv,ref)
@@ -729,7 +729,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _base64 = function(value,sref,stref)
-      return cbor5.encode(0xC0,34) .. TYPE.TEXT(value,sref,stref)
+      return cbor_c.encode(0xC0,34) .. TYPE.TEXT(value,sref,stref)
     end,
     
     [34] = function(packet,pos,conv,ref)
@@ -744,7 +744,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _regex = function(value,sref,stref)
-      return cbor5.encode(0xC0,35) .. TYPE.TEXT(value,sref,stref)
+      return cbor_c.encode(0xC0,35) .. TYPE.TEXT(value,sref,stref)
     end,
     
     [35] = function(packet,pos,conv,ref)
@@ -759,7 +759,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _mime = function(value,sref,stref)
-      return cbor5.encode(0xC0,36) .. TYPE.TEXT(value,sref,stref)
+      return cbor_c.encode(0xC0,36) .. TYPE.TEXT(value,sref,stref)
     end,
     
     [36] = function(packet,pos,conv,ref)
@@ -774,7 +774,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _magic_cbor = function()
-      return cbor5.encode(0xC0,55799)
+      return cbor_c.encode(0xC0,55799)
     end,
     
     [55799] = function(_,pos)
@@ -787,7 +787,7 @@ TAG = setmetatable(
     -- **********************************************************
     
     _nthstring = function(value,sref,stref)
-      return cbor5.encode(0xC0,25) .. encode(value,sref,stref)
+      return cbor_c.encode(0xC0,25) .. encode(value,sref,stref)
     end,
     
     [25] = function(packet,pos,conv,ref)
@@ -806,7 +806,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _perlobj = function(value,sref,stref)
-      return cbor5.encode(0xC0,26) .. TYPE.ARRAY(value,sref,stref)
+      return cbor_c.encode(0xC0,26) .. TYPE.ARRAY(value,sref,stref)
     end,
     
     [26] = function(packet,pos,conv,ref)
@@ -821,7 +821,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _serialobj = function(value,sref,stref)
-      return cbor5.encode(0xC0,27) .. TYPE.ARRAY(value,sref,stref)
+      return cbor_c.encode(0xC0,27) .. TYPE.ARRAY(value,sref,stref)
     end,
     
     [27] = function(packet,pos,conv,ref)
@@ -842,7 +842,7 @@ TAG = setmetatable(
     
     _shareable = function(value)
       assert(type(value) == 'table')
-      return cbor5.encode(0xC0,28)
+      return cbor_c.encode(0xC0,28)
     end,
     
     [28] = function(packet,pos,conv,ref)
@@ -860,7 +860,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _sharedref = function(value,sref,stref)
-      return cbor5.encode(0xC0,29) .. encode(value,sref,stref)
+      return cbor_c.encode(0xC0,29) .. encode(value,sref,stref)
     end,
     
     [29] = function(packet,pos,conv,ref)
@@ -897,7 +897,7 @@ TAG = setmetatable(
               or type(value[2]) == 'string'
             )
             
-      local res = cbor5.encode(0xC0,30) .. cbor5.encode(0x80,2)
+      local res = cbor_c.encode(0xC0,30) .. cbor_c.encode(0x80,2)
       
       if math.type(value[1]) == 'integer' then
         res = res .. __ENCODE_MAP.number(value[1],sref,stref)
@@ -945,7 +945,7 @@ TAG = setmetatable(
     _uuid = function(value,sref,stref)
       assert(type(value) == 'string')
       assert(#value == 16)
-      return cbor5.encode(0xC0,37) .. TYPE.BIN(value,sref,stref)
+      return cbor_c.encode(0xC0,37) .. TYPE.BIN(value,sref,stref)
     end,
     
     [37] = function(packet,pos,conv,ref)
@@ -968,7 +968,7 @@ TAG = setmetatable(
       assert(type(value[1]) == 'string')
       assert(type(value[2]) == 'string')
       
-      return cbor5.encode(0xC0,38) .. TYPE.ARRAY(value,sref,stref)
+      return cbor_c.encode(0xC0,38) .. TYPE.ARRAY(value,sref,stref)
     end,
     
     [38] = function(packet,pos,conv,ref)
@@ -995,7 +995,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _id = function(value,sref,stref)
-      return cbor5.encode(0xC0,39) .. encode(value,sref,stref)
+      return cbor_c.encode(0xC0,39) .. encode(value,sref,stref)
     end,
     
     [39] = function(packet,pos,conv,ref)
@@ -1011,7 +1011,7 @@ TAG = setmetatable(
     
     _stringref = function(_,_,stref)
       stref.SEEN = true
-      return cbor5.encode(0xC0,256)
+      return cbor_c.encode(0xC0,256)
     end,
     
     [256] = function(packet,pos,conv,ref)
@@ -1025,7 +1025,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _bmime = function(value,sref,stref)
-      return cbor5.encode(0xC0,257) .. TYPE.BIN(value,sref,stref)
+      return cbor_c.encode(0xC0,257) .. TYPE.BIN(value,sref,stref)
     end,
     
     [257] = function(packet,pos,conv,ref)
@@ -1040,7 +1040,7 @@ TAG = setmetatable(
       assert(#value == 2,"_decimalfractionexp expects a two item array")
       assert(type(value[1]) == 'string' or math.type(value[1]) == 'integer')
       assert(math.type(value[2]) == 'integer')
-      return cbor5.encode(0xC0,264) .. TYPE.ARRAY(value,sref,stref)
+      return cbor_c.encode(0xC0,264) .. TYPE.ARRAY(value,sref,stref)
     end,
     
     [264] = function(packet,pos,conv,ref)
@@ -1072,7 +1072,7 @@ TAG = setmetatable(
       assert(#value == 2,"_bigfloatexp expects a two item array")
       assert(type(value[1]) == 'string' or math.type(value[1]) == 'integer')
       assert(math.type(value[2]) == 'integer')
-      return cbor5.encode(0xC0,265) .. TYPE.ARRAY(value,sref,stref)
+      return cbor_c.encode(0xC0,265) .. TYPE.ARRAY(value,sref,stref)
     
     end,
     
@@ -1101,7 +1101,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _indirection = function(value,sref,stref)
-      return cbor5.encode(0xC0,22098) .. encode(value,sref,stref)
+      return cbor_c.encode(0xC0,22098) .. encode(value,sref,stref)
     end,
     
     [22098] = function(packet,pos,conv,ref)
@@ -1119,7 +1119,7 @@ TAG = setmetatable(
         
       elseif type(key) == 'string' then
         return function(value)
-          return cbor5.encode(0xC0,tonumber(key)) .. encode(value)
+          return cbor_c.encode(0xC0,tonumber(key)) .. encode(value)
         end
       end
     end
@@ -1201,7 +1201,7 @@ SIMPLE = setmetatable(
     -- =====================================================================
     
     half = function(h)
-      return cbor5.encode(0xE0,25,h)
+      return cbor_c.encode(0xE0,25,h)
     end,
     
     [25] = function(pos,value)
@@ -1211,7 +1211,7 @@ SIMPLE = setmetatable(
     -- =====================================================================
     
     single = function(s)
-      return cbor5.encode(0xE0,26,s)
+      return cbor_c.encode(0xE0,26,s)
     end,
     
     [26] = function(pos,value)
@@ -1221,7 +1221,7 @@ SIMPLE = setmetatable(
     -- =====================================================================
     
     double = function(d)
-      return cbor5.encode(0xE0,27,d)
+      return cbor_c.encode(0xE0,27,d)
     end,
     
     [27] = function(pos,value)
@@ -1247,7 +1247,7 @@ SIMPLE = setmetatable(
         
       elseif type(key) == 'string' then
         return function()
-          return cbor5.encode(0xE0,tonumber(key))
+          return cbor_c.encode(0xE0,tonumber(key))
         end
       end
     end
@@ -1257,7 +1257,7 @@ SIMPLE = setmetatable(
 -- ***********************************************************************
 
 local function decode1(packet,pos,conv,ref)
-  local ctype,info,value,npos = cbor5.decode(packet,pos)
+  local ctype,info,value,npos = cbor_c.decode(packet,pos)
   return TYPE[ctype](packet,npos,info,value,conv,ref)
 end
 
@@ -1395,7 +1395,7 @@ __ENCODE_MAP =
         return TYPE.UINT(value)
       end
     else
-      return cbor5.encode(0xE0,nil,value)
+      return cbor_c.encode(0xE0,nil,value)
     end
   end,
   

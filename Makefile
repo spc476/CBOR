@@ -34,7 +34,7 @@ override LDFLAGS += -shared
 %.so :
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-cbor5.so : cbor5.o dnf.o
+cbor_c.so : cbor_c.o dnf.o
 
 check:
 	luacheck cbor.lua test.lua cbor_s.lua test_s.lua cbormisc.lua
@@ -42,5 +42,5 @@ check:
 clean:
 	$(RM) *~ *.so *.o
 
-cbor5.o : dnf.h
-dnf.o   : dnf.h
+cbor_c.o : dnf.h
+dnf.o    : dnf.h

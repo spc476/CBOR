@@ -17,7 +17,7 @@
 --
 -- Comments, questions and criticisms can be sent to: sean@conman.org
 --
--- luacheck: globals cbor cbor5
+-- luacheck: globals cbor
 -- ***************************************************************
 
 local cbor  = require "cbor_s"

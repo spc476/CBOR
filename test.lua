@@ -17,11 +17,11 @@
 --
 -- Comments, questions and criticisms can be sent to: sean@conman.org
 --
--- luacheck: globals cbor cbor5
+-- luacheck: globals cbor cbor_c
 -- ***************************************************************
 
-cbor5 = require "cbor5"
-cbor  = require "cbor"
+cbor_c = require "cbor_c"
+cbor   = require "cbor"
 
 -- ***********************************************************************
 
@@ -219,7 +219,7 @@ test('ARRAY',"98190102030405060708090a0b0c0d0e0f101112131415161718181819",
 test('MAP',"A0",{})
 test('MAP',"a201020304",{ [1] = 2 , [3] = 4},
 	function()
-	  return cbor5.encode(0xA0,2)
+	  return cbor_c.encode(0xA0,2)
 	      .. cbor.encode(1) .. cbor.encode(2)
 	      .. cbor.encode(3) .. cbor.encode(4)
 	end)
@@ -230,7 +230,7 @@ test('ARRAY',"826161a161626163",{ "a" , { b = "c" }})
 test('MAP',"a56161614161626142616361436164614461656145",
 	{ a = 'A' , b = 'B' , c = 'C' , d = 'D' , e = 'E' },
 	function() 
-	  return cbor5.encode(0xA0,5)
+	  return cbor_c.encode(0xA0,5)
 	      .. cbor.encode "a" .. cbor.encode "A"
 	      .. cbor.encode "b" .. cbor.encode "B"
 	      .. cbor.encode "c" .. cbor.encode "C"
@@ -241,14 +241,14 @@ test('MAP',"a56161614161626142616361436164614461656145",
 rtst('MAP',{ a = "A" , b = 'B' , c = 'C' , d = "D" , e = [[E]] })
 test('BIN',"5f42010243030405ff","\1\2\3\4\5",
 	function() 
-	  return cbor5.encode(0x40)
+	  return cbor_c.encode(0x40)
 	      .. cbor.TYPE.BIN "\1\2"
 	      .. cbor.TYPE.BIN "\3\4\5"
 	      .. cbor.SIMPLE.__break()
 	end)
 test('TEXT',"7f657374726561646d696e67ff","streaming",
 	function()
-	  return cbor5.encode(0x60)
+	  return cbor_c.encode(0x60)
 	      .. cbor.TYPE.TEXT("strea")
 	      .. cbor.TYPE.TEXT("ming")
 	      .. cbor.SIMPLE.__break()

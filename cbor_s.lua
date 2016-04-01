@@ -24,12 +24,12 @@
 -- luacheck: globals _ENV _VERSION decode encode
 -- ***************************************************************
 
-local math  = require "math"
-local table = require "table"
-local lpeg  = require "lpeg"
-local cbor5 = require "cbor5"
+local math   = require "math"
+local table  = require "table"
+local lpeg   = require "lpeg"
+local cbor_c = require "cbor_c"
 
-local LUA_VERSION = _VERSION
+local LUA_VERSION  = _VERSION
 local getmetatable = getmetatable
 local setmetatable = setmetatable
 local ipairs       = ipairs
@@ -52,7 +52,7 @@ else
   _ENV = {}
 end
 
-_VERSION = cbor5._VERSION
+_VERSION = cbor_c._VERSION
 
 -- ***************************************************************
 
@@ -162,7 +162,7 @@ local TYPE =
 
 function decode(packet,pos,conv)
   pos = pos or 1
-  local ctype,info,value,npos = cbor5.decode(packet,pos)
+  local ctype,info,value,npos = cbor_c.decode(packet,pos)
   return TYPE[ctype](packet,npos,info,value,conv)
 end
 
@@ -186,20 +186,20 @@ local ENCODE_MAP =
   ['number'] = function(value)
     if math.type(value) == 'integer' then
       if value < 0 then
-        return cbor5.encode(0x20,-1 - value)
+        return cbor_c.encode(0x20,-1 - value)
       else
-        return cbor5.encode(0x00,value)
+        return cbor_c.encode(0x00,value)
       end
     else
-      return cbor5.encode(0xE0,nil,value)
+      return cbor_c.encode(0xE0,nil,value)
     end
   end,
   
   ['string'] = function(value)
     if UTF8:match(value) > #value then
-      return cbor5.encode(0x60,#value) .. value
+      return cbor_c.encode(0x60,#value) .. value
     else
-      return cbor5.encode(0x40,#value) .. value
+      return cbor_c.encode(0x40,#value) .. value
     end
   end,
   
@@ -209,7 +209,7 @@ local ENCODE_MAP =
       return mt.__tocbor(value)
     else
       if #value > 0 then
-        local res = cbor5.encode(0x80,#value)
+        local res = cbor_c.encode(0x80,#value)
         for _,item in ipairs(value) do
           res = res .. encode(item)
         end
@@ -223,7 +223,7 @@ local ENCODE_MAP =
           res = res .. encode(item)
           cnt = cnt + 1
         end
-        return cbor5.encode(0xA0,cnt) .. res
+        return cbor_c.encode(0xA0,cnt) .. res
       end
     end
   end,
@@ -245,7 +245,7 @@ local ENCODE_MAP =
 
 function encode(value,tag)
   if tag then
-    return cbor5.encode(0xC0,tag) .. ENCODE_MAP[type(value)](value)
+    return cbor_c.encode(0xC0,tag) .. ENCODE_MAP[type(value)](value)
   else
     return ENCODE_MAP[type(value)](value)
   end

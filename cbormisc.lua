@@ -27,7 +27,7 @@
 local safestring = require "org.conman.table".safestring
 local string     = require "string"
 local math       = require "math"
-local cbor5      = require "cbor5"
+local cbor_c     = require "cbor_c"
 
 local _VERSION     = _VERSION
 local setmetatable = setmetatable
@@ -218,7 +218,7 @@ SIMPLE = setmetatable(
 function diagnostic(packet,pos)
   pos = pos or 1
   
-  local ctype,info,value,npos = cbor5.decode(packet,pos)
+  local ctype,info,value,npos = cbor_c.decode(packet,pos)
   return TYPE[ctype](packet,npos,info,value)
 end
 
