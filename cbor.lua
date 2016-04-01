@@ -204,7 +204,7 @@ local function mstrlen(ref)
 end
 
 -- ***********************************************************************
--- usage:	ctype2,value2,pos2 = decbintext(packet,pos,info,value,conv,ref,ctype)
+-- usage:	value2,pos2,ctype2 = decbintext(packet,pos,info,value,conv,ref,ctype)
 -- desc:	Decode a CBOR BIN or CBOR TEXT into a Lua string
 -- input:	packet (binary) binary blob
 --		pos (integer) byte position in packet
@@ -213,9 +213,9 @@ end
 --		conv (table) conversion routines (passed to decode())
 --		ref (table) reference table
 --		ctype (enum/cbor) 'BIN' or 'TEXT'
--- return:	ctype2 (enum/cbor) 'BIN' or 'TEXT'
---		value2 (string) string from packet
+-- return:	value2 (string) string from packet
 --		pos2 (integer) position past string just extracted
+--		ctype2 (enum/cbor) 'BIN' or 'TEXT'
 -- ***********************************************************************
 
 local function decbintext(packet,pos,info,value,conv,ref,ctype)
@@ -314,7 +314,7 @@ end
 --
 --		TAG and SIMPLE encoding are handled elsewhere.
 --
--- Usage:	ctype,value2,pos2 = cbor.TYPE[n](packet,pos,info,value,conv,ref)
+-- Usage:	value2,pos2,ctype = cbor.TYPE[n](packet,pos,info,value,conv,ref)
 -- Desc:	Decode a CBOR base type
 -- Input:	packet (binary) binary blob of CBOR data
 --		pos (integer) byte offset in packet to start parsing from
@@ -322,9 +322,9 @@ end
 --		value (integer) CBOR decoded value
 --		conv (table) conversion table (passed to decode())
 --		ref (table) used to generate references (TAG types only)
--- Return:	ctype (enum/cbor) CBOR deocded type
---		value2 (any) decoded CBOR value
+-- Return:	value2 (any) decoded CBOR value
 --		pos2 (integer) byte offset just past parsed data
+--		ctype (enum/cbor) CBOR deocded type
 --
 -- Note:	tag_* is returned for any non-supported TAG types.  The
 --		actual format is 'tag_' <integer value>---for example,
@@ -511,15 +511,15 @@ TYPE =
 --
 -- Note:	Some tags only support a subset of Lua types.
 --
--- Usage:	ctype,value,pos2 = cbor.TAG[n](packet,pos,conv,ref)
+-- Usage:	value,pos2,ctype = cbor.TAG[n](packet,pos,conv,ref)
 -- Desc:	Decode a CBOR tagged value
 -- Input:	packet (binary) binary blob of CBOR tagged data
 --		pos (integer) byte offset into packet
 --		conv (table) conversion routines (passed to decode())
 --		ref (table) reference table
--- Return:	ctype (enum/cbor) CBOR type of value
---		value (any) decoded CBOR tagged value
+-- Return:	value (any) decoded CBOR tagged value
 --		pos2 (integer) byte offset just past parsed data
+--		ctype (enum/cbor) CBOR type of value
 --
 -- ***********************************************************************
 
@@ -1145,13 +1145,13 @@ TAG = setmetatable(
 --		when calling SIMPLE.half(), SIMPLE.float() or
 --		SIMPLE.double().
 --
--- Usage:	ctype,value2,pos = cbor.SIMPLE[n](pos,value)
+-- Usage:	value2,pos,ctype = cbor.SIMPLE[n](pos,value)
 -- Desc:	Decode a CBOR simple type
 -- Input:	pos (integer) byte offset in packet
 --		value (number/optional) floating point number
--- Return:	ctype (enum/cbor) CBOR type of value
---		value2 (any) decoded value as Lua value
+-- Return:	value2 (any) decoded value as Lua value
 --		pos (integer) original pos passed in (see notes)
+--		ctype (enum/cbor) CBOR type of value
 --
 -- Note:	The pos parameter is passed in to avoid special cases in
 --		the code and to conform to all other decoding routines.
@@ -1262,17 +1262,16 @@ local function decode1(packet,pos,conv,ref)
 end
 
 -- ***********************************************************************
--- Usage:	ctype,value,pos2 = cbor.decode(packet[,pos][,conv][,ref][,iskey])
+-- Usage:	value,pos2,ctype = cbor.decode(packet[,pos][,conv][,ref][,iskey])
 -- Desc:	Decode CBOR encoded data
 -- Input:	packet (binary) CBOR binary blob
 --		pos (integer/optional) starting point for decoding
 --		conv (table/optional) table of conversion routines
 --		ref (table/optional) reference table (see notes)
 --		iskey (boolean/optional) is a key in a MAP (see notes)
--- Return:	ctype (enum/cbor) CBOR type of value
---		value (any) the decoded CBOR data
+-- Return:	value (any) the decoded CBOR data
 --		pos2 (integer) offset past decoded data
---		conv (table) conversion routines (see note)
+--		ctype (enum/cbor) CBOR type of value
 --
 -- Note:	The conversion table should be constructed as:
 --
