@@ -86,14 +86,14 @@ end
 
 local SIMPLE = setmetatable(
   {
-    [20] = function(_,pos)     return false,pos,'false'     end,
-    [21] = function(_,pos)     return true ,pos,'true'      end,
-    [22] = function(_,pos)     return nil  ,pos,'null'      end,
-    [23] = function(_,pos)     return nil  ,pos,'undefined' end,
-    [25] = function(value,pos) return value,pos,'half'      end,
-    [26] = function(value,pos) return value,pos,'single'    end,
-    [27] = function(value,pos) return value,pos,'double'    end,
-    [31] = function(_,pos)     return false,pos,'__break'   end,
+    [20] = function(pos)       return false,pos,'false'     end,
+    [21] = function(pos)       return true ,pos,'true'      end,
+    [22] = function(pos)       return nil  ,pos,'null'      end,
+    [23] = function(pos)       return nil  ,pos,'undefined' end,
+    [25] = function(pos,value) return value,pos,'half'      end,
+    [26] = function(pos,value) return value,pos,'single'    end,
+    [27] = function(pos,value) return value,pos,'double'    end,
+    [31] = function(pos)       return false,pos,'__break'   end,
   },
   {
     __index = function()
@@ -154,7 +154,7 @@ local TYPE =
   end,
   
   [0xE0] = function(_,pos,info,value)
-    return SIMPLE[info](value,pos)
+    return SIMPLE[info](pos,value)
   end,
 }
 
