@@ -434,7 +434,7 @@ static int cbor5lua_decode(lua_State *L)
 
 /**************************************************************************/
 
-static luaL_Reg cbor5_reg[] =
+static const luaL_Reg cbor5_reg[] =
 {
   { "encode"	, cbor5lua_encode	} ,
   { "decode"	, cbor5lua_decode	} ,
