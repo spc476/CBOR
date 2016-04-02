@@ -39,7 +39,8 @@ INSTALL         = /usr/bin/install
 INSTALL_PROGRAM = $(INSTALL)
 INSTALL_DATA    = $(INSTALL) -m 644
 
-LUA_DIR = /usr/local
+prefix  = /usr/local
+LUA_DIR = $(prefix)
 
 override CC     += -std=c99
 override CFLAGS += -DVERSION='"$(VERSION)"'
