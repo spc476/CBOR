@@ -325,11 +325,14 @@ static int cbor5lua_encode(lua_State *L)
 }
 
 /******************************************************************
-* Usage:	value = cbor5.decode(blob,pos)
+* Usage:	ctype,info,value,pos2 = cbor5.decode(blob,pos)
 * Desc:		Decode a CBOR-encoded value
 * Input:	blob (binary) binary CBOR sludge
 *		pos (integer) position to start decoding from
-* Return:	value (any) 
+* Return:	ctype (integer) CBOR major type
+*		info (integer) sub-major type information
+*		value (integer number) decoded value
+*		pos2 (integer) position past decoded data
 *
 * Note:		Throws in invalid parameter
 *******************************************************************/
