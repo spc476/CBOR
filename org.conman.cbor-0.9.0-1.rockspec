@@ -24,6 +24,17 @@ dependencies =
 
 build =
 {
-  type           = "make",
-  install_target = "install"
+  type = "make",
+  build_variables =
+  {
+    CC      = "$(CC)",
+    CFLAGS  = "$(CFLAGS) -DNDEBUG",
+    LDFLAGS = "$(LIBFLAG)",
+  },
+
+  install_variables =
+  {
+    LIBDIR = "$(LIBDIR)",
+    LUADIR = "$(LUADIR)",
+  }
 }
