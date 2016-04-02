@@ -441,7 +441,7 @@ static const luaL_Reg cbor5_reg[] =
   { NULL	, NULL			}
 };
 
-int luaopen_cbor_c(lua_State *L)
+int luaopen_org_conman_cbor_c(lua_State *L)
 {
 #if LUA_VERSION_NUM == 501
   luaL_register(L,"cbor5",cbor5_reg);

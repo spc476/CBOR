@@ -27,7 +27,7 @@
 local math   = require "math"
 local table  = require "table"
 local lpeg   = require "lpeg"
-local cbor_c = require "cbor_c"
+local cbor_c = require "org.conman.cbor_c"
 
 local LUA_VERSION  = _VERSION
 local getmetatable = getmetatable
@@ -47,7 +47,7 @@ if LUA_VERSION < "Lua 5.3" then
 end
 
 if LUA_VERSION == "Lua 5.1" then
-  module "cbor_s"
+  module "org.conman.cbor_s"
 else
   _ENV = {}
 end

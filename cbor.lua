@@ -93,7 +93,7 @@ local math     = require "math"
 local string   = require "string"
 local table    = require "table"
 local lpeg     = require "lpeg"
-local cbor_c   = require "cbor_c"
+local cbor_c   = require "org.conman.cbor_c"
 
 local LUA_VERSION = _VERSION
 local error        = error
@@ -117,7 +117,7 @@ if LUA_VERSION < "Lua 5.3" then
 end
 
 if LUA_VERSION == "Lua 5.1" then
-  module "cbor"
+  module "org.conman.cbor"
 else
   _ENV = {}
 end

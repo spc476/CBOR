@@ -20,8 +20,8 @@
 -- luacheck: globals cbor cbor_c
 -- ***************************************************************
 
-cbor_c = require "cbor_c"
-cbor   = require "cbor"
+cbor_c = require "org.conman.cbor_c"
+cbor   = require "org.conman.cbor"
 
 -- ***********************************************************************
 

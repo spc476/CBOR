@@ -27,14 +27,14 @@
 local safestring = require "org.conman.table".safestring
 local string     = require "string"
 local math       = require "math"
-local cbor_c     = require "cbor_c"
+local cbor_c     = require "org.conman.cbor_c"
 
 local _VERSION     = _VERSION
 local setmetatable = setmetatable
 local tostring     = tostring
 
 if _VERSION == "Lua 5.1" then
-  module("cbormisc")
+  module "org.conman.cbormisc"
 else
   _ENV = {}
 end
