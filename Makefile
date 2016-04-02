@@ -23,24 +23,65 @@
 
 VERSION = $(shell git describe --tag)
 
-CC      = gcc -std=c99 -Wall -Wextra -pedantic
-CFLAGS  = -g
-LDFLAGS = -g
+CC      = gcc -Wall -Wextra -pedantic
+CFLAGS  = -g -fPIC
+LDFLAGS = -g -shared
 LDLIBS  =
 
-override CFLAGS  += -fPIC -DVERSION='"$(VERSION)"'
-override LDFLAGS += -shared
+INSTALL         = /usr/bin/install
+INSTALL_PROGRAM = $(INSTALL)
+INSTALL_DATA    = $(INSTALL) -m 644
+
+LUA_DIR = /usr/local
+
+override CC     += -std=c99
+override CFLAGS += -DVERSION='"$(VERSION)"'
+
+# ===================================================
+
+ifneq ($(LUA_INCDIR),)
+  override CFLAGS += -I$(LUA_INCDIR)
+endif
+
+ifeq ($(LIBDIR),)
+  LIBDIR=$(LUA_DIR)/lib/lua/$(shell lua -e "print(_VERSION:match '^Lua (.*)')")
+endif
+
+ifeq ($(LUADIR),)
+  LUADIR=$(LUA_DIR)/share/lua/$(shell lua -e "print(_VERSION:match '^Lua (.*)')")
+endif
+
+ifeq ($(VERSION),)
+  VERSION=0.8.0
+endif
+
+# ===================================================
 
 %.so :
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 cbor_c.so : cbor_c.o dnf.o
+cbor_c.o  : dnf.h
+dnf.o     : dnf.h
+
+# ===================================================
+
+install: cbor_c.so
+	$(INSTALL) -d $(DESTDIR)$(LIBDIR)/org/conman
+	$(INSTALL) -d $(DESTDIR)$(LUADIR)/org/conman
+	$(INSTALL_PROGRAM) cbor_c.so    $(DESTDIR)$(LIBDIR)/org/conman/cbor_c.so
+	$(INSTALL_DATA)    cbor.lua     $(DESTDIR)$(LUADIR)/org/conman/cbor.lua
+	$(INSTALL_DATA)    cbor_s.lua   $(DESTDIR)$(LUADIR)/org/conman/cbor_s.lua
+	$(INSTALL_DATA)    cbormisc.lua $(DESTDIR)$(LUADIR)/org/conman/cbormisc.lua
+
+remove:
+	$(RM) $(DESTDIR)$(LIBDIR)/org/conman/cbor_c.so
+	$(RM) $(DESTDIR)$(LUADIR)/org/conman/cbor.lua
+	$(RM) $(DESTDIR)$(LUADIR)/org/conman/cbor_s.lua
+	$(RM) $(DESTDIR)$(LUADIR)/org/conman/cbormisc.lua
 
 check:
 	luacheck cbor.lua test.lua cbor_s.lua test_s.lua cbormisc.lua
 
 clean:
 	$(RM) *~ *.so *.o
-
-cbor_c.o : dnf.h
-dnf.o    : dnf.h
