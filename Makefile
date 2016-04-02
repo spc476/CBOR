@@ -21,12 +21,19 @@
 
 .PHONY:	clean check
 
+UNAME   = $(shell uname)
 VERSION = $(shell git describe --tag)
 
 CC      = gcc -Wall -Wextra -pedantic
 CFLAGS  = -g -fPIC
-LDFLAGS = -g -shared
-LDLIBS  =
+
+ifeq ($(UNAME),Linux)
+  LDFLAGS = -g -shared
+endif
+
+ifeq ($(UNAME),Darwin)
+  LDFLAGS = -g -bundle -undefined dynamic_lookup -all_load
+endif
 
 INSTALL         = /usr/bin/install
 INSTALL_PROGRAM = $(INSTALL)
