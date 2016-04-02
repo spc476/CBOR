@@ -219,12 +219,17 @@ test('ARRAY',"98190102030405060708090a0b0c0d0e0f101112131415161718181819",
 test('MAP',"A0",{})
 test('MAP',"a201020304",{ [1] = 2 , [3] = 4},
 	function()
-	  return cbor_c.encode(0xA0,2)
+	  return cbor.TYPE.MAP(2)
 	      .. cbor.encode(1) .. cbor.encode(2)
 	      .. cbor.encode(3) .. cbor.encode(4)
 	end)
 rtst('MAP',{ [1] = 2 , [3] = 4 },cbor.TYPE.MAP)
-test('MAP',"a26161016162820203",{ a = 1 , b = { 2, 3 } })
+test('MAP',"a26161016162820203",{ a = 1 , b = { 2, 3 } },
+	function()
+	  return cbor_c.encode(0xA0,2)
+	      .. cbor.encode "a" .. cbor.encode(1)
+	      .. cbor.encode "b" .. cbor.encode { 2 , 3 }
+	end)
 rtst('MAP',{ a = 1 , b = { 2 , 3 }} )
 test('ARRAY',"826161a161626163",{ "a" , { b = "c" }})
 test('MAP',"a56161614161626142616361436164614461656145",
@@ -607,16 +612,22 @@ test('_indirection',"D95652820102" , { 1 , 2 },
 	function() return cbor.TAG._indirection { 1 , 2 } end)
 
 -- ***********************************************************************
--- And now, test *both* types of references in the same structure ...
+-- And now, test *both* types of references in the same structure.  In order
+-- to ensure a consistent check, we use arrays only for this test.  The
+-- second test using a MAP.
 -- ***********************************************************************
 
-local hoade  = { first = "Sean" , last = "Hoade"  , occupation = "writer" }
-local conner = { first = "Sean" , last = "Conner" , occupation = "programmer" }
+local hoade  = { 'first' , "Sean" , 'last' , "Hoade"  , 'occupation' , "writer" }
+local conner = { 'first' , "Sean" , 'last' , "Conner" , 'occupation' , "programmer" }
 local array  = { hoade , hoade , hoade , conner , conner , conner }
-
 test('ARRAY',
-	"D90100D81C86D81CA3656669727374645365616E646C61737465486F6164656A6F636375706174696F6E66777269746572D81D01D81D01D81CA3D81900D81901D8190266436F6E6E6572D819046A70726F6772616D6D6572D81D02D81D02",
+	"D90100D81C86D81C86656669727374645365616E646C61737465486F6164656A6F636375706174696F6E66777269746572D81D01D81D01D81C86D81900D81901D8190266436F6E6E6572D819046A70726F6772616D6D6572D81D02D81D02",
 	array,
 	function()
 	  return cbor.encode(array,{},{})
 	end)
+
+local hoade2 = { first = "Sean" , last = "Hoade" , occupation = "writer" }
+local conner2 = { first = "Sean" , last = "Conner" , occupation = "programmer" }
+local array2  = { hoade , hoade , hoade , conner , conner , conner }
+rtst('ARRAY',array2,nil,{},{})
