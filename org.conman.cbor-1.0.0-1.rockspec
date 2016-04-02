@@ -15,7 +15,7 @@ description =
   summary    = "A Lua implementation of the CBOR spec (RFC-7049)",
   detailed   = [[
 	A complete implementation of CBOR (Concise Binary Object
-	Representation) will all the currently defined bells and whistles,
+	Representation) with all the currently defined bells and whistles,
 	including string, array and map references (if so desired).  A
 	simpler, small implementation of CBOR is also provided for less
 	intensive or simpler uses.
