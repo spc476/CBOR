@@ -1384,7 +1384,7 @@ __ENCODE_MAP =
 }
 
 -- ***********************************************************************
--- Usage:	blob = cbor.encode(value,sref,stref)
+-- Usage:	blob = cbor.encode(value[,sref][,stref])
 -- Desc:	Encode a Lua type into a CBOR type
 -- Input:	value (any)
 --		sref (table/optional) shared reference table
