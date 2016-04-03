@@ -1265,7 +1265,7 @@ function decode(packet,pos,conv,ref,iskey)
 end
 
 -- ***********************************************************************
--- Usage:	value,pos2,ctype,err = cbor.pdecode(packet[,pos][,conv][,ref])
+-- Usage:	value,pos2,ctype[,err] = cbor.pdecode(packet[,pos][,conv][,ref])
 -- Desc:	Protected call to cbor.decode(), which will return an error
 -- Input:	packet (binary) CBOR binary blob
 --		pos (integer/optional) starting point for decoding
@@ -1400,6 +1400,25 @@ function encode(value,sref,stref)
   end
   
   return res .. __ENCODE_MAP[type(value)](value,sref,stref)
+end
+
+-- ***********************************************************************
+-- Usage:	blob[,err] = cbor.pencode(value[,sref][,stref])
+-- Desc:	Protected call to encode a CBOR type
+-- Input:	value (any)
+--		sref (table/optional) shared reference table
+--		stref (table/optional) shared string reference table
+-- Return:	blob (binary) CBOR encoded value, nil on error
+--		err (string/optional) error message
+-- ***********************************************************************
+
+function pencode(value,sref,stref)
+  local okay,value = pcall(encode,value,sref,stref)
+  if okay then
+    return value
+  else
+    return nil,value
+  end
 end
 
 -- ***********************************************************************
