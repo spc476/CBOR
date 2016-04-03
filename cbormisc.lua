@@ -32,6 +32,7 @@ local cbor_c     = require "org.conman.cbor_c"
 local _VERSION     = _VERSION
 local setmetatable = setmetatable
 local tostring     = tostring
+local pcall        = pcall
 
 if _VERSION == "Lua 5.1" then
   module "org.conman.cbormisc"
@@ -220,6 +221,17 @@ function diagnostic(packet,pos)
   
   local ctype,info,value,npos = cbor_c.decode(packet,pos)
   return TYPE[ctype](packet,npos,info,value)
+end
+
+-- ***************************************************************
+
+function pdiagnostic(packet,pos)
+  local okay,result = diagnostic(packet,pos)
+  if okay then
+    return result
+  else
+    return nil,result
+  end
 end
 
 -- ***************************************************************
