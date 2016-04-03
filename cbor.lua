@@ -125,12 +125,21 @@ end
 _VERSION = cbor_c._VERSION
 
 -- ***********************************************************************
+-- UTF-8 defintion from RFC-3629.  There's a deviation from the RFC
+-- specification in that I only allow certain codes from the US-ASCII C0
+-- range (control codes) that are in common use.
+-- ***********************************************************************
 
 local UTF8 = (
                  lpeg.R("\7\13"," ~")
                + lpeg.R("\194\223") * lpeg.R("\128\191")
-               + lpeg.R("\224\239") * lpeg.R("\128\191") * lpeg.R("\128\191")
-               + lpeg.R("\240\244") * lpeg.R("\128\191") * lpeg.R("\128\191") * lpeg.R("\128\191")
+               + lpeg.P("\224")     * lpeg.R("\160\191") * lpeg.R("\128\191")
+               + lpeg.R("\225\236") * lpeg.R("\128\191") * lpeg.R("\128\191")
+               + lpeg.P("\237")     * lpeg.R("\128\159") * lpeg.R("\128\191")
+               + lpeg.R("\238\239") * lpeg.R("\128\191") * lpeg.R("\128\191")
+               + lpeg.P("\240")     * lpeg.R("\144\191") * lpeg.R("\128\191") * lpeg.R("\128\191")
+               + lpeg.R("\241\243") * lpeg.R("\128\191") * lpeg.R("\128\191") * lpeg.R("\128\191")
+               + lpeg.P("\224")     * lpeg.R("\128\142") * lpeg.R("\128\191") * lpeg.R("\128\191")
 	     )^0
 
 -- ***********************************************************************
