@@ -35,6 +35,7 @@ local setmetatable = setmetatable
 local ipairs       = ipairs
 local pairs        = pairs
 local type         = type
+local pcall        = pcall
 
 if LUA_VERSION < "Lua 5.3" then
   function math.type(n)    
@@ -247,6 +248,27 @@ function decode(packet,pos,conv)
 end
 
 -- ***************************************************************
+-- Usage:	value,pos2,ctype[,err] = cbor.pdecode(packet[,pos][,conv])
+-- Desc:	Protected call to decode CBOR data
+-- Input:	packet (binary) CBOR binary blob
+--		pos (integer/optional) starting point for decoding
+--		conv (table/optional) table of tagged conversion routines
+-- Return:	value (any) the decoded CBOR data, nil on error
+--		pos2 (integer) offset past decoded data, 0 on error
+--		ctype (enum/cbor) CBOR type of value
+--		err (string/optional) error message, if any
+-- ***********************************************************************
+
+function pdecode(packet,pos,conv)
+  local okay,value,npos,ctype = pcall(decode,packet,pos,conv)
+  if okay then
+    return value,npos,ctype
+  else
+    return nil,0,'__error',value
+  end
+end
+
+-- ***************************************************************
 --
 --                              __ENCODE_MAP
 --
@@ -355,6 +377,24 @@ function encode(value,tag)
     return cbor_c.encode(0xC0,tag) .. ENCODE_MAP[type(value)](value)
   else
     return ENCODE_MAP[type(value)](value)
+  end
+end
+
+-- ***************************************************************
+-- Usage:	blob[,err] = cbor_s.pencode(value[,tag])
+-- Desc:	Protected call to encode into CBOR
+-- Input:	value (any)
+--		tag (number/optional) CBOR tag value
+-- Return:	blob (binary) CBOR encoded value
+--		err (string/optional) error message
+-- ***************************************************************
+
+function pencode(value,tag)
+  local okay,value = pcall(encode,value,tag)
+  if okay then
+    return value
+  else
+    return nil,vale
   end
 end
 
