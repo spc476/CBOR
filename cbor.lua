@@ -388,7 +388,7 @@ TYPE =
     if not s then
       return "\127"
     else
-      assert(UTF8:match(s) > #s)
+      assert(UTF8:match(s) > #s,"TEXT: not UTF-8 text")
       return encbintext(s,sref,stref,0x60)
     end
   end,
@@ -850,7 +850,7 @@ TAG = setmetatable(
     -- =====================================================================
     
     _shareable = function(value)
-      assert(type(value) == 'table')
+      assert(type(value) == 'table',"_shareable: expects a table")
       return cbor_c.encode(0xC0,28)
     end,
     
@@ -898,12 +898,13 @@ TAG = setmetatable(
       -- The encoding phase is done by hand for this.  Here we go ... 
       -- -----------------------------------------------------------------
       
-      assert(type(value) == 'table')
-      assert(#value == 2)
-      assert(math.type(value[1]) == 'integer' or type(value[1] == 'string'))
+      assert(type(value) == 'table',"_rational: expecting a table")
+      assert(#value == 2,"_rational: expecting a table of two values")
+      assert(math.type(value[1]) == 'integer' or type(value[1] == 'string'),"_rational: bad numerator")
       assert(
               math.type(value[2]) == 'integer' and value[2] > 0
-              or type(value[2]) == 'string'
+              or type(value[2]) == 'string',
+              "_rational: bad denominator"
             )
             
       local res = cbor_c.encode(0xC0,30) .. cbor_c.encode(0x80,2)
@@ -952,8 +953,8 @@ TAG = setmetatable(
     -- =====================================================================
     
     _uuid = function(value,sref,stref)
-      assert(type(value) == 'string')
-      assert(#value == 16)
+      assert(type(value) == 'string',"_uuid: expecting a string")
+      assert(#value == 16,"_uuid: expecting a binary string of 16 bytes")
       return cbor_c.encode(0xC0,37) .. TYPE.BIN(value,sref,stref)
     end,
     
@@ -972,10 +973,10 @@ TAG = setmetatable(
     -- =====================================================================
     
     _language = function(value,sref,stref)
-      assert(type(value) == 'table')
-      assert(#value == 2)
-      assert(type(value[1]) == 'string')
-      assert(type(value[2]) == 'string')
+      assert(type(value) == 'table',"_language: expecting a table")
+      assert(#value == 2,"_language: expecting a table of two values")
+      assert(type(value[1]) == 'string',"_language: expeting a string")
+      assert(type(value[2]) == 'string',"_language: expeting a string")
       
       return cbor_c.encode(0xC0,38) .. TYPE.ARRAY(value,sref,stref)
     end,
@@ -1204,13 +1205,6 @@ SIMPLE = setmetatable(
 )
 
 -- ***********************************************************************
-
-local function decode1(packet,pos,conv,ref)
-  local ctype,info,value,npos = cbor_c.decode(packet,pos)
-  return TYPE[ctype](packet,npos,info,value,conv,ref)
-end
-
--- ***********************************************************************
 -- Usage:	value,pos2,ctype = cbor.decode(packet[,pos][,conv][,ref][,iskey])
 -- Desc:	Decode CBOR encoded data
 -- Input:	packet (binary) CBOR binary blob
@@ -1245,6 +1239,14 @@ end
 --		is an internal use only variable and you need to know what
 --		you are doing to use this.  You have been warned.
 --
+--		This function can throw an error.  The returned error object
+-- 		MAY BE a table, in which case it has the format:
+--
+--		{
+--		  msg = "Error text",
+--		  pos = 13 -- position in binary object of error
+--		}
+--
 -- ***********************************************************************
 
 function decode(packet,pos,conv,ref,iskey)
@@ -1252,15 +1254,35 @@ function decode(packet,pos,conv,ref,iskey)
   conv = conv or {}
   ref  = ref  or { _stringref = {} , _sharedref = {} }
   
-  local okay,value,npos,ctype = pcall(decode1,packet,pos,conv,ref)
+  local ctype,info,value,npos = cbor_c.decode(packet,pos)
+  local value2,npos2,ctype2 = TYPE[ctype](packet,npos,info,value,conv,ref)
   
+  if conv[ctype2] then
+    value = conv[ctype2](value2,iskey)
+  end
+  
+  return value2,npos2,ctype2
+end
+
+-- ***********************************************************************
+-- Usage:	value,pos2,ctype,err = cbor.pdecode(packet[,pos][,conv][,ref])
+-- Desc:	Protected call to cbor.decode(), which will return an error
+-- Input:	packet (binary) CBOR binary blob
+--		pos (integer/optional) starting point for decoding
+--		conv (table/optional) table of conversion routines (see cbor.decode())
+--		ref (table/optional) reference table (see cbor.decode())
+-- Return:	value (any) the decoded CBOR data, nil on error
+--		pos2 (integer) offset past decoded data; if error, position of error
+--		ctype (enum/cbor) CBOR type
+--		err (string/optional) error message (if any)
+-- ***********************************************************************
+
+function pdecode(packet,pos,conv,ref)
+  local okay,value,npos,ctype = pcall(decode,packet,pos,conv,ref)
   if okay then
-    if conv[ctype] then
-      value = conv[ctype](value,iskey)
-    end
     return value,npos,ctype
   else
-    return nil,pos,'__error'
+    return nil,value.pos,'__error',value.msg
   end
 end
 
