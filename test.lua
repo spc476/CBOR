@@ -629,5 +629,5 @@ test('ARRAY',
 
 local hoade2 = { first = "Sean" , last = "Hoade" , occupation = "writer" }
 local conner2 = { first = "Sean" , last = "Conner" , occupation = "programmer" }
-local array2  = { hoade , hoade , hoade , conner , conner , conner }
+local array2  = { hoade2 , hoade2 , hoade2 , conner2 , conner2 , conner2 }
 rtst('ARRAY',array2,nil,{},{})
