@@ -61,7 +61,7 @@ typedef union
 * respectively).
 ****************************************************************************/
 
-static void cbor5L_pushvalueN(
+static void cbor_cL_pushvalueN(
         lua_State              *L,
         int                     typeinfo,
         unsigned long long int  value,
@@ -91,7 +91,7 @@ static void cbor5L_pushvalueN(
 * encoding for a value.
 **************************************************************************/
 
-static void cbor5L_pushvalue(
+static void cbor_cL_pushvalue(
         lua_State              *L,
         int                     type,
         unsigned long long int  value
@@ -121,18 +121,18 @@ static void cbor5L_pushvalue(
   else
   {
     if (value < 256uLL)
-      cbor5L_pushvalueN(L,type | 24,value,1);
+      cbor_cL_pushvalueN(L,type | 24,value,1);
     else if (value < 65536uLL)
-      cbor5L_pushvalueN(L,type | 25,value,2);
+      cbor_cL_pushvalueN(L,type | 25,value,2);
     else if (value < 4294967296uLL)
-      cbor5L_pushvalueN(L,type | 26,value,4);
+      cbor_cL_pushvalueN(L,type | 26,value,4);
     else
-      cbor5L_pushvalueN(L,type | 27,value,8);
+      cbor_cL_pushvalueN(L,type | 27,value,8);
   }
 }
 
 /******************************************************************
-* usage:	blob = cbor5.encode02C(type,value)
+* usage:	blob = cbor_c.encode02C(type,value)
 * desc:		Encode a CBOR integer
 * input:	type (integer) 0x00, 0x20, 0xC0
 *		value (number) value to encode
@@ -144,7 +144,7 @@ static void cbor5L_pushvalue(
 * note:		Throws on invalid parameters
 *******************************************************************/
 
-static int cbor5lua_encode02C(lua_State *L)
+static int cbor_clua_encode02C(lua_State *L)
 {
   assert(L != NULL);
   
@@ -153,12 +153,12 @@ static int cbor5lua_encode02C(lua_State *L)
   assert((type == 0x00) || (type == 0x20) || (type == 0xC0));
 #endif
 
-  cbor5L_pushvalue(L,luaL_checkinteger(L,1),luaL_checknumber(L,2));
+  cbor_cL_pushvalue(L,luaL_checkinteger(L,1),luaL_checknumber(L,2));
   return 1;
 }
 
 /******************************************************************
-* usage:	blob = cbor5.encode468A(type[,value])
+* usage:	blob = cbor_c.encode468A(type[,value])
 * desc:		Encode a CBOR integer
 * input:	type (integer) 0x40, 0x60, 0x80, 0xA0
 *		value (number/optional) value to encode
@@ -172,7 +172,7 @@ static int cbor5lua_encode02C(lua_State *L)
 * note:		Throws on invalid parameters
 *******************************************************************/
 
-static int cbor5lua_encode468A(lua_State *L)
+static int cbor_clua_encode468A(lua_State *L)
 {
   assert(L != NULL);
   
@@ -187,13 +187,13 @@ static int cbor5lua_encode468A(lua_State *L)
     lua_pushlstring(L,&t,1);
   }
   else
-    cbor5L_pushvalue(L,luaL_checkinteger(L,1),luaL_checknumber(L,2));
+    cbor_cL_pushvalue(L,luaL_checkinteger(L,1),luaL_checknumber(L,2));
   
   return 1;
 }
 
 /******************************************************************
-* usage:	blob = cbor5.encodeE(type[,value][,value2])
+* usage:	blob = cbor_c.encodeE(type[,value][,value2])
 * desc:		Encode a CBOR integer or float
 * input:	type (integer) 0xE0
 *		value (number/optional) possible integer to encode
@@ -211,7 +211,7 @@ static int cbor5lua_encode468A(lua_State *L)
 *		precision.
 *******************************************************************/
 
-static int cbor5lua_encodeE(lua_State *L)
+static int cbor_clua_encodeE(lua_State *L)
 {
   unsigned short h;
   double__u      d;
@@ -245,11 +245,11 @@ static int cbor5lua_encodeE(lua_State *L)
       d.d = luaL_checknumber(L,3);
       dnf_fromdouble(&cv,d.d);
       if (dnf_tohalf(&h,cv) == 0)
-        cbor5L_pushvalueN(L,type | 25,(unsigned long long int)h,2);
+        cbor_cL_pushvalueN(L,type | 25,(unsigned long long int)h,2);
       else if (dnf_tosingle(&f.f,cv) == 0)
-        cbor5L_pushvalueN(L,type | 26,(unsigned long long int)f.i,4);
+        cbor_cL_pushvalueN(L,type | 26,(unsigned long long int)f.i,4);
       else
-        cbor5L_pushvalueN(L,type | 27,d.i,8);
+        cbor_cL_pushvalueN(L,type | 27,d.i,8);
     }
   }
   else
@@ -268,7 +268,7 @@ static int cbor5lua_encodeE(lua_State *L)
       dnf_fromdouble(&cv,d.d);
       if (dnf_tohalf(&h,cv) != 0)
         return luaL_error(L,"cannot convert to half-precision");
-      cbor5L_pushvalueN(L,type | 25,(unsigned long long int)h,2);
+      cbor_cL_pushvalueN(L,type | 25,(unsigned long long int)h,2);
     }
     else if (value == 26)
     {
@@ -276,22 +276,22 @@ static int cbor5lua_encodeE(lua_State *L)
       dnf_fromdouble(&cv,d.d);
       if (dnf_tosingle(&f.f,cv) != 0)
         return luaL_error(L,"cannot convert to single-preccision");
-      cbor5L_pushvalueN(L,type | 26,(unsigned long long int)f.i,4);
+      cbor_cL_pushvalueN(L,type | 26,(unsigned long long int)f.i,4);
     }
     else if (value == 27)
     {
       d.d = luaL_checknumber(L,3);
-      cbor5L_pushvalueN(L,type | 27,d.i,8);
+      cbor_cL_pushvalueN(L,type | 27,d.i,8);
     }
     else
-      cbor5L_pushvalue(L,luaL_checkinteger(L,1),value);
+      cbor_cL_pushvalue(L,luaL_checkinteger(L,1),value);
   }
   
   return 1;
 }
 
 /******************************************************************
-* Usage:	blob = cbor5.encode(type,value[,value2])
+* Usage:	blob = cbor_c.encode(type,value[,value2])
 * Desc:		Encode a CBOR value
 * Input:	type (integer) CBOR type
 *		value (number) value to encode (see note)
@@ -302,7 +302,7 @@ static int cbor5lua_encodeE(lua_State *L)
 *		value2 is optional for type of 0xE0; otherwise it's ignored.
 *******************************************************************/
 
-static int cbor5lua_encode(lua_State *L)
+static int cbor_clua_encode(lua_State *L)
 {
   assert(L != NULL);
   
@@ -310,14 +310,14 @@ static int cbor5lua_encode(lua_State *L)
   {
     case 0x00:
     case 0x20:
-    case 0xC0: return cbor5lua_encode02C(L);
+    case 0xC0: return cbor_clua_encode02C(L);
     
     case 0x40:
     case 0x60:
     case 0x80:
-    case 0xA0: return cbor5lua_encode468A(L);
+    case 0xA0: return cbor_clua_encode468A(L);
     
-    case 0xE0: return cbor5lua_encodeE(L);
+    case 0xE0: return cbor_clua_encodeE(L);
     default:   break;
   }
   
@@ -325,7 +325,7 @@ static int cbor5lua_encode(lua_State *L)
 }
 
 /******************************************************************
-* Usage:	ctype,info,value,pos2 = cbor5.decode(blob,pos)
+* Usage:	ctype,info,value,pos2 = cbor_c.decode(blob,pos)
 * Desc:		Decode a CBOR-encoded value
 * Input:	blob (binary) binary CBOR sludge
 *		pos (integer) position to start decoding from
@@ -337,7 +337,7 @@ static int cbor5lua_encode(lua_State *L)
 * Note:		Throws in invalid parameter
 *******************************************************************/
 
-static int cbor5lua_decode(lua_State *L)
+static int cbor_clua_decode(lua_State *L)
 {
   size_t                  packlen;
   const char             *packet = luaL_checklstring(L,1,&packlen);
@@ -442,19 +442,19 @@ static int cbor5lua_decode(lua_State *L)
 
 /**************************************************************************/
 
-static const luaL_Reg cbor5_reg[] =
+static const luaL_Reg cbor_c_reg[] =
 {
-  { "encode"	, cbor5lua_encode	} ,
-  { "decode"	, cbor5lua_decode	} ,
+  { "encode"	, cbor_clua_encode	} ,
+  { "decode"	, cbor_clua_decode	} ,
   { NULL	, NULL			}
 };
 
 int luaopen_org_conman_cbor_c(lua_State *L)
 {
 #if LUA_VERSION_NUM == 501
-  luaL_register(L,"org.conman.cbor_c",cbor5_reg);
+  luaL_register(L,"org.conman.cbor_c",cbor_c_reg);
 #else
-  luaL_newlib(L,cbor5_reg);
+  luaL_newlib(L,cbor_c_reg);
 #endif
 
   lua_pushliteral(L,VERSION);
