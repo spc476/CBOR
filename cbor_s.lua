@@ -390,11 +390,11 @@ end
 -- ***************************************************************
 
 function pencode(value,tag)
-  local okay,value = pcall(encode,value,tag)
+  local okay,value2 = pcall(encode,value,tag)
   if okay then
-    return value
+    return value2
   else
-    return nil,vale
+    return nil,value2
   end
 end
 
