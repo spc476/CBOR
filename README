@@ -365,20 +365,20 @@ types are:
 		* _mime		MIME encoded messsage (TEXT)
 		* _magic_cbor	itself (no data, used to self-describe CBOR data)
 
-		* _nthstring	shared string (not supported)
-		* _perlobj	Perl serialized object (not supported)
-		* _serialobj	Generic serialized object (not supported)
+		* _nthstring	shared string
+		* _perlobj	Perl serialized object
+		* _serialobj	Generic serialized object
 		* _shareable	sharable resource (ARRAY or MAP)
 		* _sharedref	reference (UINT)
-		* _rational	Rational number (not supported)
+		* _rational	Rational number
 		* _uuid		UUID value (BIN)
-		* _language	Language-tagged string (not supported)
-		* _id		Identifier (not supported)
-		* _stringref	string reference (not supported)
-		* _bmime	Binary MIME message (not supported)
-		* _decimalfractionexp (not supported)
-		* _bigfloatexp	(not supported)
-		* _indirection	Indirection (not supported)
+		* _language	Language-tagged string
+		* _id		Identifier
+		* _stringref	string reference
+		* _bmime	Binary MIME message
+		* _decimalfractionexp like _decimalfraction, non-int exponent
+		* _bigfloatexp	like _bigfloat, non-int exponent
+		* _indirection	Indirection
 
 	--------------------------------------------------------------
 
