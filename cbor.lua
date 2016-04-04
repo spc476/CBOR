@@ -1413,11 +1413,11 @@ end
 -- ***********************************************************************
 
 function pencode(value,sref,stref)
-  local okay,value = pcall(encode,value,sref,stref)
+  local okay,value2 = pcall(encode,value,sref,stref)
   if okay then
-    return value
+    return value2
   else
-    return nil,value
+    return nil,value2
   end
 end
 
