@@ -138,7 +138,7 @@ int dnf_fromhalf(dnf__s *const pv,unsigned short int h)
     pv->exp   = pv->exp - 15;
     pv->frac |= 0x8000000000000000uLL;
   }
-
+  
   return 0;
 }
 
@@ -308,7 +308,7 @@ int dnf_todouble(double *const pd,dnf__s v)
   double__u d;
   
   assert(pd != NULL);
-
+  
   if (v.exp == INT_MAX)
     d.i = 0x7FF0000000000000uLL;
   else if ((v.exp < -1074) || (v.exp > 1023))

@@ -429,13 +429,13 @@ static int cbor_clua_decode(lua_State *L)
     lua_pushinteger(L,pos + 2);
     return 4;
   }
-
+  
 # if LUA_VERSION_NUM < 503  
     lua_pushnumber(L,value);
 # else
     lua_pushinteger(L,value);
 # endif
-
+  
   lua_pushinteger(L,pos + 2);
   return 4;
 }
@@ -456,10 +456,10 @@ int luaopen_org_conman_cbor_c(lua_State *L)
 #else
   luaL_newlib(L,cbor_c_reg);
 #endif
-
+  
   lua_pushliteral(L,VERSION);
   lua_setfield(L,-2,"_VERSION");
-
+  
   return 1;
 }
 

@@ -94,7 +94,7 @@ local function test(ctype,hbinary,src,srcf,destf)
     else
       encoded = cbor.encode(src)
     end
-
+    
     assertf(encoded == bin,"encoding for %s failed:\n%s\n%s",ctype,bintohex(bin),bintohex(encoded))
   else
     print("SKIPPED encoding",ctype)

@@ -94,7 +94,7 @@ local function test(ctype,hbinary,src,srcf,destf)
     else
       encoded = cbor.encode(src)
     end
-
+    
     assertf(encoded == bin,"encoding for %s failed:\n%s\n%s",ctype,bintohex(bin),bintohex(encoded))
   else
     print("SKIPPED encoding",ctype)
@@ -102,7 +102,7 @@ local function test(ctype,hbinary,src,srcf,destf)
   end
   
   local decoded,_,rctype = cbor.decode(encoded)
-
+  
   assertf(rctype == ctype,"decoding type failed: wanted %s got %s",ctype,rctype)
   
   if type(destf) == 'function' then
@@ -196,4 +196,3 @@ test('ARRAY',"98190102030405060708090a0b0c0d0e0f101112131415161718181819",
 rtst('MAP',{ a = 1 , b = { 2 , 3 }} )
 test('ARRAY',"826161a161626163",{ "a" , { b = "c" }})
 rtst('MAP',{ a = "A" , b = 'B' , c = 'C' , d = "D" , e = [[E]] })
-

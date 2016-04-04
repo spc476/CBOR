@@ -10,7 +10,7 @@ They are, in order of complexity:
 *
 *************************************************************
 
-This module provides the foundation of the CBOR modules and is written in C. 
+This module provides the foundation of the CBOR modules and is written in C.
 This module deals with the lowest level details of encoding and decoding
 CBOR data.  It will encode data with the minimal encoding size [1].  This
 module provides just two functions, and it helps to be familiar with
@@ -30,19 +30,19 @@ Input:		type (integer) CBOR type
 		value (number) value to encode (see note)
 		value (number/optional) float to encode (see note)
 Return:		blob (binary) CBOR encoded value
-
+		
 Note:		value is optional for type of 0xE0.
 		value2 is optional for type of 0xE0; otherwise it's ignored.
-	
+		
 		To encode a break value: 
 			blob = cbor_c.encode(0xE0)
-
+			
 		To encode a floating point value with a minimal encoding:
 			blob = cbor_c.encode(0xE0,nil,1.23)
-
+			
 		To force a particular encoding of a float value:
 			blob = cbor_c.encode(0xE0,27,math.huge)
-
+			
 		To encode an array of indeterminate length:
 			blob = cbor_c.encode(0xA0)
 				-- encode entries
@@ -82,7 +82,7 @@ Desc:		Encode a Lua type into a CBOR type
 Input:		value (any)
 		tag (number/optional) CBOR tag value
 Return:		blob (binary) CBOR encoded value
-
+		
 Note:		This function can throw errors
 
 ==============================================================
@@ -104,19 +104,19 @@ Input:		packet (binary) CBOR binary blob
 Return:		value (any) the decoded CBOR data
 		pos2 (integer) offset past decoded data
 		ctype (enum/cbor) CBOR type of value
-
+		
 Note:		The conversion table should be constructed as:
-
+		
 		{
 		  [ 0] = function(v) return munge(v) end,
 		  [32] = function(v) return munge(v) end,,
 		}
-
+		
 		The keys are CBOR types (as integers).  These functions are
 		expected to convert the decoded CBOR type into a more
 		appropriate type for your code.  For instance, [1] (epoch)
 		can be converted into a table.
-
+		
 		This function can throw errors.
 
 ==============================================================
@@ -176,37 +176,37 @@ Input:	packet (binary) CBOR binary blob
 Return:	value (any) the decoded CBOR data
 	pos2 (integer) offset past decoded data
 	ctype (enum/cbor) CBOR type of value
-
+	
 Note:	The conversion table should be constructed as:
 	{
 	  UINT      = function(v) return munge(v) end,
 	  _datetime = function(v) return munge(v) end,
 	  _url      = function(v) return munge(v) end,,
 	}
-
+	
 	The keys are CBOR types (listed above).  These functions are
 	expected to convert the decoded CBOR type into a more appropriate
 	type for your code.  For instance, an _epoch can be converted into a
 	table.
-
+	
 	Users of this function *should not* pass a reference table into this
 	routine---this is used internally to handle references.  You need to
 	know what you are doing to use this parameter.  You have been
 	warned.
-
+	
 	The iskey is true if the value is being used as a key in a map, and
 	is passed to the conversion routine; this too, is an internal use
 	only variable and you need to know what you are doing to use this. 
 	You have been warned.
-
+	
 	This function can throw an error.  The returned error object MAY BE
 	a table, in which case it has the format:
-
+	
 	{
 	  msg = "Error text",
 	  pos = 13 -- position in binary object of error
 	}
-
+	
 	This function can throw errors
 
 ==============================================================
@@ -230,7 +230,7 @@ Input:	value (any)
 	sref (table/optional) shared reference table
 	stref (table/optional) shared string reference table
 Return:	blob (binary) CBOR encoded value
-
+	
 Note:	This function can throw errors
 
 ==============================================================
@@ -287,28 +287,28 @@ Input:	n (integer string table) Lua type (see notes)
 	sref (table/optional) shared reference table
 	stref (table/optional) shared string reference table
 Return:	blob (binary) CBOR encoded value
-
+	
 Note:	UINT and NINT take an integer.
-
+	
 	BIN and TEXT take a string.  TEXT will check to see if
 	the text is well formed UTF8 and throw an error if the
 	text is not valid UTF8.
-
+	
 	ARRAY and MAP take a table of an appropriate type. No
 	checking is done of the passed in table, so a table
 	of just name/value pairs passed in to ARRAY will return
 	an empty CBOR encoded array.
-
+	
 	TAG and SIMPLE encoding are handled elsewhere.
-
+	
 	If the data you have includes tables with cycles, you will need to
 	pass in an empty table for the sref parameter, otherwise, you run
 	the risk of blowing out the stack.
-
+	
 	The parameter stref is used to pass strings as references in the 
 	resulting CBOR.  This will make the resulting CBOR data smaller, but
 	make sure the receiving end can deal with string references.
-
+	
 	ARRAY and MAP references are separate from string referenes.  It is
 	also safe to use both with this module.
 
@@ -325,21 +325,21 @@ Input:	packet (binary) binary blob of CBOR data
 Return:	value2 (any) decoded CBOR value
 	pos2 (integer) byte offset just past parsed data
 	ctype (enum/cbor) CBOR deocded type
-
+	
 Note:	tag_* is returned for any non-supported TAG types.  The
 	actual format is 'tag_' <integer value>---for example,
 	'tag_1234567890'.  Supported TAG types will return the
 	appropriate type name.
-
+	
 	simple is returned for any non-supported SIMPLE types. 
 	Supported simple types will return the appropriate type
 	name.
-
+	
 	The ref parameter is not marked optional here---it's used internally
 	to handle ARRAY/MAP and string references.  Make sure you always
 	pass in the same table (it should be empty initally) here for
 	consistent results.
-	
+
 ==============================================================
 
 		cbor.TAG
@@ -364,7 +364,7 @@ types are:
 		* _regex	regex (TEXT)
 		* _mime		MIME encoded messsage (TEXT)
 		* _magic_cbor	itself (no data, used to self-describe CBOR data)
-
+		
 		* _nthstring	shared string
 		* _perlobj	Perl serialized object
 		* _serialobj	Generic serialized object
@@ -388,7 +388,7 @@ Input:	value (any) any Lua type
 	sref (table/optional) shared reference table
 	stref (table/optional) shared string reference table
 Return:	blob (binary) CBOR encoded tagged value
-
+	
 Note:	Some tags only support a subset of Lua types.
 
 	--------------------------------------------------------------
@@ -424,9 +424,9 @@ Usage:	blob = cbor.SIMPLE['name'](n)
 Desc:	Encode a CBOR simple type
 Input:	n (number/optional) floating point number to encode (see notes)
 Return:	blob (binary) CBOR encoded simple type
-
+	
 Note:	Some functions ignore the passed in parameter.  
-
+	
 	WARNING! The functions that do not ignore the parameter may
 	throw an error if floating point precision will be lost
 	during the encoding.  Please be aware of what you are doing
@@ -442,7 +442,7 @@ Input:	pos (integer) byte offset in packet
 Return:	value2 (any) decoded value as Lua value
 	pos (integer) original pos passed in (see notes)
 	ctype (enum/cbor) CBOR type of value
-
+	
 Note:	The pos parameter is passed in to avoid special cases in
 	the code and to conform to all other decoding routines.
 

@@ -497,7 +497,7 @@ TYPE =
     if info == 31 then throw(pos,"invalid data") end
     return TAG[value](packet,pos,conv,ref)
   end,
-
+  
   -- =====================================================================
   
   [0xE0] = function(_,pos,info,value)
@@ -1173,20 +1173,20 @@ SIMPLE = setmetatable(
     [20] = function(pos)       return false,pos,'false'     end,
     [21] = function(pos)       return true ,pos,'true'      end,
     [22] = function(pos)       return nil  ,pos,'null'      end,
-    [23] = function(pos)       return nil  ,pos,'undefined' end,  
+    [23] = function(pos)       return nil  ,pos,'undefined' end,
     [25] = function(pos,value) return value,pos,'half'      end,
     [26] = function(pos,value) return value,pos,'single'    end,
     [27] = function(pos,value) return value,pos,'double'    end,
     [31] = function(pos)       return false,pos,'__break'   end,
-                                      
-    ['false'] = function()  return "\244" end,    
+    
+    ['false'] = function()  return "\244" end,
     ['true']  = function()  return "\245" end,
-    null      = function()  return "\246" end,    
-    undefined = function()  return "\247" end,    
-    half      = function(h) return cbor_c.encode(0xE0,25,h) end,    
-    single    = function(s) return cbor_c.encode(0xE0,26,s) end,    
-    double    = function(d) return cbor_c.encode(0xE0,27,d) end,    
-    __break   = function()  return "\255" end,    
+    null      = function()  return "\246" end,
+    undefined = function()  return "\247" end,
+    half      = function(h) return cbor_c.encode(0xE0,25,h) end,
+    single    = function(s) return cbor_c.encode(0xE0,26,s) end,
+    double    = function(d) return cbor_c.encode(0xE0,27,d) end,
+    __break   = function()  return "\255" end,
   },
   {
     __index = function(_,key)
