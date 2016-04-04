@@ -1,0 +1,475 @@
+
+            The Concise Binary Object Representation Lua Modules
+
+There are currently four modules defined that all deal with CBOR (RFC-7049). 
+They are, in order of complexity:
+
+*************************************************************
+*
+*	org.conman.cbor_c
+*
+*************************************************************
+
+This module provides the foundation of the CBOR modules and is written in C. 
+This module deals with the lowest level details of encoding and decoding
+CBOR data.  It will encode data with the minimal encoding size [1].  This
+module provides just two functions, and it helps to be familiar with
+RFC-7049 to use this module properly.
+
+NOTE:  Both functions can throw an error.
+
+[1]	Floating point values will by default be encoded with the minimal
+	encoding size without losing precision.  It is possible to use a
+	larger encoding if wanted.
+
+==============================================================
+
+Usage:		blob = cbor_c.encode(type,value[,value2])
+Desc:		Encode a CBOR value
+Input:		type (integer) CBOR type
+		value (number) value to encode (see note)
+		value (number/optional) float to encode (see note)
+Return:		blob (binary) CBOR encoded value
+
+Note:		value is optional for type of 0xE0.
+		value2 is optional for type of 0xE0; otherwise it's ignored.
+	
+		To encode a break value: 
+			blob = cbor_c.encode(0xE0)
+
+		To encode a floating point value with a minimal encoding:
+			blob = cbor_c.encode(0xE0,nil,1.23)
+
+		To force a particular encoding of a float value:
+			blob = cbor_c.encode(0xE0,27,math.huge)
+
+		To encode an array of indeterminate length:
+			blob = cbor_c.encode(0xA0)
+				-- encode entries
+			blob = blob .. cbor_c.encode(0xE0)
+
+==============================================================
+
+Usage:		ctype,info,value,pos2 = cbor_c.decode(blob,pos)
+Desc:		Decode a CBOR-encoded value
+Input:		blob (binary) binary CBOR sludge
+		pos (integer) position to start decoding from
+Return:		ctype (integer) CBOR major type
+		info (integer) sub-major type information
+		value (integer number) decoded value
+		pos2 (integer) position past decoded data
+
+Note:		Throws in invalid parameter
+
+*************************************************************
+*
+*	org.conman.cbor_s
+*
+*************************************************************
+
+This module provides a simple (or small, take your pick) implementation of
+CBOR, which should be fine for most uses, as long as such uses don't really
+require the need of TAGS (although there is some minimal support for such)
+and as long as you stick to simple Lua types like nil, booleans, numbers,
+strings and tables of only simple Lua types and that have no cycles.  This
+function defines four functions.  No type checking is done when encoding
+tagged values.
+
+==============================================================
+
+Usage:		blob = cbor.encode(value[,tag])
+Desc:		Encode a Lua type into a CBOR type
+Input:		value (any)
+		tag (number/optional) CBOR tag value
+Return:		blob (binary) CBOR encoded value
+
+Note:		This function can throw errors
+
+==============================================================
+
+Usage:		blob[,err] = cbor_s.pencode(value[,tag])
+Desc:		Protected call to encode into CBOR
+Input:		value (any)
+		tag (number/optional) CBOR tag value
+Return:		blob (binary) CBOR encoded value
+		err (string/optional) error message
+
+==============================================================
+
+Usage:		value,pos2,ctype = cbor.decode(packet[,pos][,conv])
+Desc:		Decode CBOR encoded data
+Input:		packet (binary) CBOR binary blob
+		pos (integer/optional) starting point for decoding
+		conv (table/optional) table of tagged conversion routines
+Return:		value (any) the decoded CBOR data
+		pos2 (integer) offset past decoded data
+		ctype (enum/cbor) CBOR type of value
+
+Note:		The conversion table should be constructed as:
+
+		{
+		  [ 0] = function(v) return munge(v) end,
+		  [32] = function(v) return munge(v) end,,
+		}
+
+		The keys are CBOR types (as integers).  These functions are
+		expected to convert the decoded CBOR type into a more
+		appropriate type for your code.  For instance, [1] (epoch)
+		can be converted into a table.
+
+		This function can throw errors.
+
+==============================================================
+
+Usage:		value,pos2,ctype[,err] = cbor.pdecode(packet[,pos][,conv])
+Desc:		Protected call to decode CBOR data
+Input:		packet (binary) CBOR binary blob
+		pos (integer/optional) starting point for decoding
+		conv (table/optional) table of tagged conversion routines
+Return:		value (any) the decoded CBOR data, nil on error
+		pos2 (integer) offset past decoded data, 0 on error
+		ctype (enum/cbor) CBOR type of value
+		err (string/optional) error message, if any
+
+*************************************************************
+*
+*	org.conman.cbor
+*
+*************************************************************
+
+Full blown CBOR support.  All of RFC-7049 as well as the currently defined
+IANA extensions are supported with this module.  This module also includes
+enhanced error detection and type checking.  As a result, it's quite a bit
+larger than the org.conman.cbor_s module.  This module also contains a large
+number of functions.
+
+==============================================================
+
+Usage:	bool = cbor.isnumber(ctype)
+Desc:	returns true of the given CBOR type is a number
+Input:	type (enum/cbor) CBOR type
+Return:	bool (boolean) true if number, false otherwise
+
+==============================================================
+
+Usage:	bool = cbor.isinteger(ctype)   
+Desc:	returns true if the given CBOR type is an integer
+Input:	ctype (enum/cbor) CBOR type
+Return:	bool (boolean) true if number, false othersise
+
+==============================================================
+
+Usage:	bool = cbor.isfloat(ctype)
+Desc: 	returns true if the given CBOR type is a float
+Input:	ctype (enum/cbor) CBOR type
+Return:	bool (boolean) true if number, false otherwise
+
+==============================================================
+
+Usage:	value,pos2,ctype = cbor.decode(packet[,pos][,conv][,ref][,iskey])
+Desc:	Decode CBOR encoded data
+Input:	packet (binary) CBOR binary blob
+	pos (integer/optional) starting point for decoding
+	conv (table/optional) table of conversion routines
+	ref (table/optional) reference table (see notes)
+	iskey (boolean/optional) is a key in a MAP (see notes)
+Return:	value (any) the decoded CBOR data
+	pos2 (integer) offset past decoded data
+	ctype (enum/cbor) CBOR type of value
+
+Note:	The conversion table should be constructed as:
+	{
+	  UINT      = function(v) return munge(v) end,
+	  _datetime = function(v) return munge(v) end,
+	  _url      = function(v) return munge(v) end,,
+	}
+
+	The keys are CBOR types (listed above).  These functions are
+	expected to convert the decoded CBOR type into a more appropriate
+	type for your code.  For instance, an _epoch can be converted into a
+	table.
+
+	Users of this function *should not* pass a reference table into this
+	routine---this is used internally to handle references.  You need to
+	know what you are doing to use this parameter.  You have been
+	warned.
+
+	The iskey is true if the value is being used as a key in a map, and
+	is passed to the conversion routine; this too, is an internal use
+	only variable and you need to know what you are doing to use this. 
+	You have been warned.
+
+	This function can throw an error.  The returned error object MAY BE
+	a table, in which case it has the format:
+
+	{
+	  msg = "Error text",
+	  pos = 13 -- position in binary object of error
+	}
+
+	This function can throw errors
+
+==============================================================
+
+Usage:	value,pos2,ctype[,err] = cbor.pdecode(packet[,pos][,conv][,ref])
+Desc:	Protected call to cbor.decode(), which will return an error
+Input:	packet (binary) CBOR binary blob
+	pos (integer/optional) starting point for decoding
+	conv (table/optional) table of conversion routines (see cbor.decode())
+	ref (table/optional) reference table (see cbor.decode())
+Return:	value (any) the decoded CBOR data, nil on error
+	pos2 (integer) offset past decoded data; if error, position of error
+	ctype (enum/cbor) CBOR type
+	err (string/optional) error message (if any)
+
+==============================================================
+
+Usage:	blob = cbor.encode(value[,sref][,stref])
+Desc:	Encode a Lua type into a CBOR type
+Input:	value (any)
+	sref (table/optional) shared reference table
+	stref (table/optional) shared string reference table
+Return:	blob (binary) CBOR encoded value
+
+Note:	This function can throw errors
+
+==============================================================
+
+Usage:	blob[,err] = cbor.pencode(value[,sref][,stref])
+Desc:	Protected call to encode a CBOR type
+Input:	value (any)
+	sref (table/optional) shared reference table
+	stref (table/optional) shared string reference table
+Return:	blob (binary) CBOR encoded value, nil on error
+	err (string/optional) error message
+
+==============================================================
+
+	cbor.__ENCODE_MAP
+
+A table of functions to map Lua values to CBOR encoded values.  nil,
+boolean, number and string are handled directly (if a Lua string is valid
+UTF8, then it's encoded as a CBOR TEXT.
+
+For the other four types, only tables are directly supported without
+metatable support.  If a metatable does exist, if the method '__tocbor' is
+defined, that function is called and the results returned.  If '__len' is
+defined, then it is mapped as a CBOR ARRAY.  For Lua 5.2, if '__ipairs' is
+defined, then it too, is mapped as a CBOR ARRAY.  If Lua 5.2 or higher and
+'__pairs' is defined, then it's mapped as a CBOR MAP.
+
+Otherwise, an error is thrown.
+
+	--------------------------------------------------------------
+
+Usage:	blob = cbor.__ENCODE_MAP[luatype](value,sref,stref)
+Desc:	Encode a Lua type into a CBOR type
+Input:	value (any) a Lua value who's type matches luatype.
+	sref (table/optional) shared reference table
+	stref (table/optional) shared string reference table
+Return:	blob (binary) CBOR encoded data
+
+==============================================================
+
+	cbor.TYPE
+
+Both encoding and decoding functions for CBOR base types are in this table. 
+The functions 'UINT' (unsigned integer), 'NINT' (negative integer), 'BIN'
+(binary string), 'TEXT' (UTF-8 encoded text), 'ARRAY' (a Lua array or
+sequence) and 'MAP' are used to encode the given type.  The numeric entries
+are for decoding CBOR data.
+
+	--------------------------------------------------------------
+
+Usage:	blob = cbor.TYPE['name'](n,sref,stref)
+Desc:	Encode a CBOR base type
+Input:	n (integer string table) Lua type (see notes)
+	sref (table/optional) shared reference table
+	stref (table/optional) shared string reference table
+Return:	blob (binary) CBOR encoded value
+
+Note:	UINT and NINT take an integer.
+
+	BIN and TEXT take a string.  TEXT will check to see if
+	the text is well formed UTF8 and throw an error if the
+	text is not valid UTF8.
+
+	ARRAY and MAP take a table of an appropriate type. No
+	checking is done of the passed in table, so a table
+	of just name/value pairs passed in to ARRAY will return
+	an empty CBOR encoded array.
+
+	TAG and SIMPLE encoding are handled elsewhere.
+
+	If the data you have includes tables with cycles, you will need to
+	pass in an empty table for the sref parameter, otherwise, you run
+	the risk of blowing out the stack.
+
+	The parameter stref is used to pass strings as references in the 
+	resulting CBOR.  This will make the resulting CBOR data smaller, but
+	make sure the receiving end can deal with string references.
+
+	ARRAY and MAP references are separate from string referenes.  It is
+	also safe to use both with this module.
+
+	--------------------------------------------------------------
+
+Usage:	value2,pos2,ctype = cbor.TYPE[n](packet,pos,info,value,conv,ref)
+Desc:	Decode a CBOR base type
+Input:	packet (binary) binary blob of CBOR data
+	pos (integer) byte offset in packet to start parsing from
+	info (integer) CBOR info (0 .. 31)
+	value (integer) CBOR decoded value
+	conv (table) conversion table (passed to decode())
+	ref (table) used to generate references (TAG types only)
+Return:	value2 (any) decoded CBOR value
+	pos2 (integer) byte offset just past parsed data
+	ctype (enum/cbor) CBOR deocded type
+
+Note:	tag_* is returned for any non-supported TAG types.  The
+	actual format is 'tag_' <integer value>---for example,
+	'tag_1234567890'.  Supported TAG types will return the
+	appropriate type name.
+
+	simple is returned for any non-supported SIMPLE types. 
+	Supported simple types will return the appropriate type
+	name.
+
+	The ref parameter is not marked optional here---it's used internally
+	to handle ARRAY/MAP and string references.  Make sure you always
+	pass in the same table (it should be empty initally) here for
+	consistent results.
+	
+==============================================================
+
+		cbor.TAG
+
+Encoding and decoding of CBOR TAG types are here.  Like cbor.TYPE, the named
+entries are for encoding and the numbered entries are for decoding.  Named
+types are:
+
+		* _datetime	datetime (TEXT)
+		* _epoch	see cbor.isnumber()
+		* _pbignum	positive bignum (BIN)
+		* _nbignum	negative bignum (BIN)
+		* _decimalfraction ARRAY(integer exp, integer mantissa)
+		* _bigfloat	ARRAY(float exp,integer mantissa)
+		* _tobase64url	should be base64url encoded (BIN)
+		* _tobase64	should be base64 encoded (BIN)
+		* _tobase16	should be base16 encoded (BIN)
+		* _cbor		CBOR encoded data (BIN)
+		* _url		URL (TEXT)
+		* _base64url	base64url encoded data (TEXT)
+		* _base64	base64 encoded data (TEXT)
+		* _regex	regex (TEXT)
+		* _mime		MIME encoded messsage (TEXT)
+		* _magic_cbor	itself (no data, used to self-describe CBOR data)
+
+		* _nthstring	shared string (not supported)
+		* _perlobj	Perl serialized object (not supported)
+		* _serialobj	Generic serialized object (not supported)
+		* _shareable	sharable resource (ARRAY or MAP)
+		* _sharedref	reference (UINT)
+		* _rational	Rational number (not supported)
+		* _uuid		UUID value (BIN)
+		* _language	Language-tagged string (not supported)
+		* _id		Identifier (not supported)
+		* _stringref	string reference (not supported)
+		* _bmime	Binary MIME message (not supported)
+		* _decimalfractionexp (not supported)
+		* _bigfloatexp	(not supported)
+		* _indirection	Indirection (not supported)
+
+	--------------------------------------------------------------
+
+Usage:	blob = cbor.TAG['name'](value,sref,stref)
+Desc:	Encode a CBOR tagged value
+Input:	value (any) any Lua type
+	sref (table/optional) shared reference table
+	stref (table/optional) shared string reference table
+Return:	blob (binary) CBOR encoded tagged value
+
+Note:	Some tags only support a subset of Lua types.
+
+	--------------------------------------------------------------
+
+Usage:	value,pos2,ctype = cbor.TAG[n](packet,pos,conv,ref)
+Desc:	Decode a CBOR tagged value
+Input:	packet (binary) binary blob of CBOR tagged data
+	pos (integer) byte offset into packet
+	conv (table) conversion routines (passed to decode())
+	ref (table) reference table
+Return:	value (any) decoded CBOR tagged value
+	pos2 (integer) byte offset just past parsed data
+	ctype (enum/cbor) CBOR type of value
+
+==============================================================
+
+		cbor.SIMPLE
+
+Encoding and decoding of CBOR simple types are here.  These are:
+
+		* false		false value	(Lua false)
+		* true		true value	(Lua true)
+		* null		NULL value	(Lua nil)
+		* undefined	undefined value	(Lua nil)
+		* half		half precicion   IEEE 754 float
+		* single	single precision IEEE 754 float
+		* double	double precision IEEE 754 float
+		* __break	SEE NOTES
+
+	--------------------------------------------------------------
+
+Usage:	blob = cbor.SIMPLE['name'](n)
+Desc:	Encode a CBOR simple type
+Input:	n (number/optional) floating point number to encode (see notes)
+Return:	blob (binary) CBOR encoded simple type
+
+Note:	Some functions ignore the passed in parameter.  
+
+	WARNING! The functions that do not ignore the parameter may
+	throw an error if floating point precision will be lost
+	during the encoding.  Please be aware of what you are doing
+	when calling SIMPLE.half(), SIMPLE.float() or
+	SIMPLE.double().
+
+	--------------------------------------------------------------
+
+Usage:	value2,pos,ctype = cbor.SIMPLE[n](pos,value)
+Desc:	Decode a CBOR simple type
+Input:	pos (integer) byte offset in packet
+	value (number/optional) floating point number
+Return:	value2 (any) decoded value as Lua value
+	pos (integer) original pos passed in (see notes)
+	ctype (enum/cbor) CBOR type of value
+
+Note:	The pos parameter is passed in to avoid special cases in
+	the code and to conform to all other decoding routines.
+
+*************************************************************
+*
+*	org.conman.cbormisc
+*
+*************************************************************
+
+This module contains miscellaneous routines related to CBOR.  Currently, two
+functions are defined, and these are not required for normal CBOR usage.
+
+==============================================================
+
+Usage:		diag = cbormisc.diagnostic(packet[,pos])
+Desc:		Output CBOR encoded data in the CBOR diagnostic output format
+Input:		packet (binary) CBOR encoded data
+		pos (integer/optional) starting point for decoding
+Return:		diag (string) CBOR data in CBOR diagnostic format
+
+Note:		This function can throw errors
+
+==============================================================
+
+Usage:		diag[,err] = cbormisc.pdiagnostic(packet[,pos])
+Desc:		Protected call to cbormisc.diagnostic
+Input:		packet (binary) CBOR encoded data
+		pos (integer/optional) starting point for decoding
+Return:		diag (string) CBOR data in CBOR diagnostic format
+		err (string/optional) error message if any
