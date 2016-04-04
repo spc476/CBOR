@@ -1258,7 +1258,7 @@ function decode(packet,pos,conv,ref,iskey)
   local value2,npos2,ctype2 = TYPE[ctype](packet,npos,info,value,conv,ref)
   
   if conv[ctype2] then
-    value = conv[ctype2](value2,iskey)
+    value2 = conv[ctype2](value2,iskey)
   end
   
   return value2,npos2,ctype2
