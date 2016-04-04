@@ -226,7 +226,7 @@ test('MAP',"a201020304",{ [1] = 2 , [3] = 4},
 rtst('MAP',{ [1] = 2 , [3] = 4 },cbor.TYPE.MAP)
 test('MAP',"a26161016162820203",{ a = 1 , b = { 2, 3 } },
 	function()
-	  return cbor_c.encode(0xA0,2)
+	  return cbor.TYPE.MAP(2)
 	      .. cbor.encode "a" .. cbor.encode(1)
 	      .. cbor.encode "b" .. cbor.encode { 2 , 3 }
 	end)
@@ -235,7 +235,7 @@ test('ARRAY',"826161a161626163",{ "a" , { b = "c" }})
 test('MAP',"a56161614161626142616361436164614461656145",
 	{ a = 'A' , b = 'B' , c = 'C' , d = 'D' , e = 'E' },
 	function() 
-	  return cbor_c.encode(0xA0,5)
+	  return cbor.TYPE.MAP(5)
 	      .. cbor.encode "a" .. cbor.encode "A"
 	      .. cbor.encode "b" .. cbor.encode "B"
 	      .. cbor.encode "c" .. cbor.encode "C"
