@@ -21,7 +21,7 @@
 --
 -- Output in the CBOR dianostic format
 --
--- luacheck: globals _ENV TYPE TAG SIMPLE diagnostic
+-- luacheck: globals _ENV TYPE TAG SIMPLE diagnostic pdiagnostic
 -- ***************************************************************
 
 local safestring = require "org.conman.table".safestring
@@ -226,7 +226,7 @@ end
 -- ***************************************************************
 
 function pdiagnostic(packet,pos)
-  local okay,result = diagnostic(packet,pos)
+  local okay,result = pcall(diagnostic,packet,pos)
   if okay then
     return result
   else
