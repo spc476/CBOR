@@ -21,7 +21,7 @@
 --
 -- A simpler CBOR encoding/decoding module
 --
--- luacheck: globals _ENV _VERSION decode encode
+-- luacheck: globals _ENV _VERSION decode encode pdecode pencode
 -- ***************************************************************
 
 local math   = require "math"
