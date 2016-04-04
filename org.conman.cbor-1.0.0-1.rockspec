@@ -12,7 +12,7 @@ description =
   homepage = "http://github.com/spc476/CBOR.git",
   maintainer = "Sean Conner <sean@conman.org>",
   license    = "LGPL-3",
-  summary    = "A Lua implementation of the CBOR spec (RFC-7049)",
+  summary    = "The most comprehensive CBOR module in the Lua universe.",
   detailed   = [[
 	A complete implementation of CBOR (Concise Binary Object
 	Representation) with all the currently defined bells and whistles,
