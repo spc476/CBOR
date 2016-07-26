@@ -47,13 +47,8 @@ override CFLAGS += -DVERSION='"$(VERSION)"'
 
 # ===================================================
 
-ifeq ($(LIBDIR),)
-  LIBDIR=$(LUA_DIR)/lib/lua/$(shell lua -e "print(_VERSION:match '^Lua (.*)')")
-endif
-
-ifeq ($(LUADIR),)
-  LUADIR=$(LUA_DIR)/share/lua/$(shell lua -e "print(_VERSION:match '^Lua (.*)')")
-endif
+LIBDIR=$(LUA_DIR)/lib/lua/$(shell lua -e "print(_VERSION:match '^Lua (.*)')")
+LUADIR=$(LUA_DIR)/share/lua/$(shell lua -e "print(_VERSION:match '^Lua (.*)')")
 
 ifeq ($(VERSION),)
   VERSION=1.0.0
