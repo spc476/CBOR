@@ -34,7 +34,7 @@ build =
   build_variables =
   {
     CC      = "$(CC)",
-    CFLAGS  = "$(CFLAGS) -DNDEBUG",
+    CFLAGS  = "$(CFLAGS) -DNDEBUG -I$(LUA_INCDIR)",
     LDFLAGS = "$(LIBFLAG)",
   },
   install_variables =
