@@ -21,8 +21,8 @@
 
 .PHONY:	clean check
 
-UNAME   = $(shell uname)
-VERSION = $(shell git describe --tag)
+UNAME   := $(shell uname)
+VERSION := $(shell git describe --tag)
 
 CC      = gcc -Wall -Wextra -pedantic
 CFLAGS  = -g -fPIC
