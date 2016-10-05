@@ -30,17 +30,36 @@ dependencies =
 
 build =
 {
-  type = "builtin",
-  modules = 
+  platforms =
   {
-    ['org.conman.cbor_c'] = 
+    windows =
     {
-      sources = { 'cbor_c.c', 'dnf.c' },
-      defines = {  'VERSION="1.2.1"'  },
-    },
+      type = "builtin",
+      modules = 
+      {
+        ['org.conman.cbor_c'] = 
+        {
+          sources = { 'cbor_c.c', 'dnf.c' },
+          defines = {  'VERSION="1.2.1"'  },
+        },
 
-    ['org.conman.cbor']     = 'cbor.lua',
-    ['org.conman.cbor_s']   = 'cbor_s.lua',
-    ['org.conman.cbormisc'] = 'cbormisc.lua',
+        ['org.conman.cbor']     = 'cbor.lua',
+        ['org.conman.cbor_s']   = 'cbor_s.lua',
+        ['org.conman.cbormisc'] = 'cbormisc.lua',
+      }
+    }
+  },
+
+  type = "make",
+  build_variables =
+  {
+    CC      = "$(CC)",
+    CFLAGS  = "$(CFLAGS) -DNDEBUG -I$(LUA_INCDIR)",
+    LDFLAGS = "$(LIBFLAG)",
+  },
+  install_variables =
+  {
+    LIBDIR = "$(LIBDIR)",
+    LUADIR = "$(LUADIR)",
   }
 }
