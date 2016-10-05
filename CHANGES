@@ -1,6 +1,8 @@
 
 1.2.1	
 
+	* Fix Makefile to calculate Lua version once.
+
 	* Fix rockspec to use 'builtin' method, not the 'make' method
 	  to better work on Windows.
 
