@@ -1,4 +1,9 @@
 
+1.2.1	
+
+	* Fix rockspec to use 'builtin' method, not the 'make' method
+	  to better work on Windows.
+
 1.2.0	2016-10-04
 
 	* Changed RAINS support to better reflect how it's supposed to be

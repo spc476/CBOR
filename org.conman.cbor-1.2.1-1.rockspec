@@ -1,10 +1,10 @@
 package = "org.conman.cbor"
-version = "1.2.0-1"
+version = "1.2.1-1"
 
 source =
 {
   url = "git://github.com/spc476/CBOR.git",
-  tag = "1.2.0"
+  tag = "1.2.1"
 }
 
 description =
@@ -30,16 +30,17 @@ dependencies =
 
 build =
 {
-  type = "make",
-  build_variables =
+  type = "builtin",
+  modules = 
   {
-    CC      = "$(CC)",
-    CFLAGS  = "$(CFLAGS) -DNDEBUG -I$(LUA_INCDIR)",
-    LDFLAGS = "$(LIBFLAG)",
-  },
-  install_variables =
-  {
-    LIBDIR = "$(LIBDIR)",
-    LUADIR = "$(LUADIR)",
+    ['org.conman.cbor_c'] = 
+    {
+      sources = { 'cbor_c.c', 'dnf.c' },
+      defines = {  'VERSION="1.2.1"'  },
+    },
+
+    ['org.conman.cbor']     = 'cbor.lua',
+    ['org.conman.cbor_s']   = 'cbor_s.lua',
+    ['org.conman.cbormisc'] = 'cbormisc.lua',
   }
 }

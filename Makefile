@@ -51,7 +51,7 @@ LIBDIR=$(LUA_DIR)/lib/lua/$(shell lua -e "print(_VERSION:match '^Lua (.*)')")
 LUADIR=$(LUA_DIR)/share/lua/$(shell lua -e "print(_VERSION:match '^Lua (.*)')")
 
 ifeq ($(VERSION),)
-  VERSION=1.2.0
+  VERSION=1.2.1
 endif
 
 # ===================================================
