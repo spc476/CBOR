@@ -1,4 +1,9 @@
 
+1.2.0	2016-10-04
+
+	* Changed RAINS support to better reflect how it's supposed to be
+	  used.
+
 1.1.2	2016-10-04
 
 	* Update CHANGES file.

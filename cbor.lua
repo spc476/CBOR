@@ -1122,12 +1122,13 @@ TAG = setmetatable(
     
     -- =====================================================================
     
-    _rains = function()
-      return cbor_c.encode(0xC0,15309736)
+    _rains = function(value,sref,stref)
+      return cbor_c.encode(0xC0,15309736) .. TYPE.MAP(value,sref,stref)
     end,
     
-    [15309736] = function(_,pos)
-      return '_rains',pos,'_rains'
+    [15309736] = function(packet,pos,conv,ref)
+      local value,npos = decode(packet,pos,conv,ref)
+      return value,npos,'_rains'
     end,
   },
   {

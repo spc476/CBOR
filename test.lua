@@ -627,10 +627,30 @@ test('ARRAY',
 	  return cbor.encode(array,{},{})
 	end)
 
-local hoade2 = { first = "Sean" , last = "Hoade" , occupation = "writer" }
+local hoade2  = { first = "Sean" , last = "Hoade" , occupation = "writer" }
 local conner2 = { first = "Sean" , last = "Conner" , occupation = "programmer" }
 local array2  = { hoade2 , hoade2 , hoade2 , conner2 , conner2 , conner2 }
 rtst('ARRAY',array2,nil,{},{})
 
-test('_rains',"DA00E99BA8","_rains",
-	function() return cbor.TAG._rains() end)
+-- *********************************************************************
+-- Read https://britram.github.io/rains-prototype/#cbor-object for 
+-- context for this test.
+-- *********************************************************************
+
+local q =
+{
+  [0] = -- content key
+  { 
+    {
+      4 , -- query type
+      {
+        [5] = "www.conman.org.", -- query name
+        [13] = { "." },		-- query context
+        [14] = { 1 , 2 , 3 } ,	-- query types
+      }
+    }
+  }
+}
+
+test('_rains',"DA00E99BA8A100818204A3056F7777772E636F6E6D616E2E6F72672E0D81612E0E83010203"
+	,q,function() return cbor.TAG._rains(q) end)
