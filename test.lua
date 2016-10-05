@@ -643,11 +643,28 @@ local q =
   { 
     {
       4 , -- query type
-      {
-        [5] = "www.conman.org.", -- query name
-        [13] = { "." },		-- query context
-        [14] = { 1 , 2 , 3 } ,	-- query types
-      }
+      
+      -- ------------------------------------------------------------------
+      -- This is a sparse array, and because of that, it's stored in the
+      -- hash portion of the table, which means the order of fields is
+      -- unpredictable.  In order to fix this, we'll set a __tocbor method
+      -- on this subtable to make sure we have this in order.
+      -- ------------------------------------------------------------------
+      
+      setmetatable(
+        {
+	  [ 5] = "www.conman.org.",	-- query name
+	  [13] = { "." },		-- query context
+	  [14] = { 1 , 2 , 3 } ,	-- query types
+	},
+	{
+	  __tocbor = function(self)
+	    return cbor.TYPE.MAP(3)
+	           .. cbor.encode( 5) .. cbor.encode(self[ 5])
+	           .. cbor.encode(13) .. cbor.encode(self[13])
+	           .. cbor.encode(14) .. cbor.encode(self[14])
+	  end
+	})     
     }
   }
 }
