@@ -75,6 +75,7 @@
 --			* _decimalfractionexp like _decimalfraction, non-int exponent
 --			* _bigfloatexp	like _bigfloat, non-int exponent
 --			* _indirection	Indirection
+--			* _rains	RAINS message
 --			*** Lua CBOR library types
 --			* __error	error parsing (TEXT)
 --		data (any) decoded CBOR data
@@ -1117,6 +1118,16 @@ TAG = setmetatable(
     [22098] = function(packet,pos,conv,ref)
       local value,npos = decode(packet,pos,conv,ref)
       return value,npos,'_indirection'
+    end,
+    
+    -- =====================================================================
+    
+    _rains = function()
+      return cbor_c.encode(0xC0,15309736)
+    end,
+    
+    [15309736] = function(_,pos)
+      return '_rains',pos,'_rains'
     end,
   },
   {

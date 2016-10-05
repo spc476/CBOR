@@ -1,10 +1,10 @@
 package = "org.conman.cbor"
-version = "1.0.1-1"
+version = "1.1.0-1"
 
 source =
 {
   url = "git://github.com/spc476/CBOR.git",
-  tag = "1.0.1"
+  tag = "1.1.0"
 }
 
 description =

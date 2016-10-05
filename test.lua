@@ -631,3 +631,6 @@ local hoade2 = { first = "Sean" , last = "Hoade" , occupation = "writer" }
 local conner2 = { first = "Sean" , last = "Conner" , occupation = "programmer" }
 local array2  = { hoade2 , hoade2 , hoade2 , conner2 , conner2 , conner2 }
 rtst('ARRAY',array2,nil,{},{})
+
+test('_rains',"DA00E99BA8","_rains",
+	function() return cbor.TAG._rains() end)

@@ -512,6 +512,7 @@ types are:
 		* _decimalfractionexp like _decimalfraction, non-int exponent
 		* _bigfloatexp	like _bigfloat, non-int exponent
 		* _indirection	Indirection
+		* _rains	RAINS based message
 
 	--------------------------------------------------------------
 
