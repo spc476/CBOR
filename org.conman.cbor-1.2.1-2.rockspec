@@ -1,15 +1,15 @@
 package = "org.conman.cbor"
-version = "1.2.1-1"
+version = "1.2.1-2"
 
 source =
 {
   url = "git://github.com/spc476/CBOR.git",
-  tag = "1.2.1"
+  tag = version:match "[^-]+"
 }
 
 description =
 {
-  homepage = "http://github.com/spc476/CBOR.git",
+  homepage   = "http://github.com/spc476/CBOR.git",
   maintainer = "Sean Conner <sean@conman.org>",
   license    = "LGPL-3",
   summary    = "The most comprehensive CBOR module in the Lua universe.",
@@ -34,13 +34,13 @@ build =
   {
     windows =
     {
-      type = "builtin",
+      type    = "builtin",
       modules = 
       {
         ['org.conman.cbor_c'] = 
         {
           sources = { 'cbor_c.c', 'dnf.c' },
-          defines = {  'VERSION="1.2.1"'  },
+          defines = { 'VERSION="' .. source.tag .. '"' },
         },
 
         ['org.conman.cbor']     = 'cbor.lua',
