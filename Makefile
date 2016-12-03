@@ -53,7 +53,7 @@ LIBDIR      = $(LUA_DIR)/lib/lua/$(LUA_VERSION)
 LUADIR      = $(LUA_DIR)/share/lua/$(LUA_VERSION)
 
 ifeq ($(VERSION),)
-  VERSION=1.2.1
+  VERSION=1.2.3
 endif
 
 # ===================================================
