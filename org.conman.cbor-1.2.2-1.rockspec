@@ -1,5 +1,5 @@
 package = "org.conman.cbor"
-version = "1.2.1-2"
+version = "1.2.2-1"
 
 source =
 {
