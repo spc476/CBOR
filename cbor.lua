@@ -632,7 +632,7 @@ TAG = setmetatable(
       assert(type(value)         == 'table',  "_bigfloat expects an array")
       assert(#value              == 2,        "_bigfloat expects a two item array")
       assert(math.type(value[1]) == 'integer',"_bigfloat expects an integer as first element")
-      assert(math.type(value[2]) == 'integer',"_bigfloat expecta an integer as second element")
+      assert(math.type(value[2]) == 'integer',"_bigfloat expects an integer as second element")
       return cbor_c.encode(0xC0,5) .. TYPE.ARRAY(value,sref,stref)
     end,
     
@@ -644,7 +644,7 @@ TAG = setmetatable(
       end
       
       if #value ~= 2 then
-        throw(pos,"_bigfloat: watned ARRAY[2], got ARRAY[%s]",value)
+        throw(pos,"_bigfloat: wanted ARRAY[2], got ARRAY[%s]",value)
       end
       
       if type(value[1]) ~= 'number' then

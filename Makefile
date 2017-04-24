@@ -24,7 +24,7 @@
 UNAME   := $(shell uname)
 VERSION := $(shell git describe --tag)
 
-CC      = gcc -Wall -Wextra -pedantic
+CC      = c99 -Wall -Wextra -pedantic
 CFLAGS  = -g -fPIC
 
 ifeq ($(UNAME),Linux)
@@ -39,21 +39,22 @@ INSTALL         = /usr/bin/install
 INSTALL_PROGRAM = $(INSTALL)
 INSTALL_DATA    = $(INSTALL) -m 644
 
-prefix  = /usr/local
-LUA_DIR = $(prefix)
+prefix      ?= /usr/local
+libdir      ?= $(prefix)/lib
+datarootdir ?= $(prefix)/share
+dataroot    ?= $(datarootdir)
 
-override CC     += -std=c99
 override CFLAGS += -DVERSION='"$(VERSION)"'
 
 # ===================================================
 
-LUA         = lua
-LUA_VERSION = $(shell $(LUA) -e "io.stdout:write(_VERSION:match '^Lua (.*)','\n')")
-LIBDIR      = $(LUA_DIR)/lib/lua/$(LUA_VERSION)
-LUADIR      = $(LUA_DIR)/share/lua/$(LUA_VERSION)
+LUA         ?= lua
+LUA_VERSION := $(shell $(LUA) -e "io.stdout:write(_VERSION:match '^Lua (.*)','\n')")
+LIBDIR      ?= $(libdir)/lua/$(LUA_VERSION)
+LUADIR      ?= $(dataroot)/lua/$(LUA_VERSION)
 
 ifeq ($(VERSION),)
-  VERSION=1.2.3
+  VERSION=1.2.4
 endif
 
 # ===================================================
