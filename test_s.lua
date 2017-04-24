@@ -1,23 +1,24 @@
 -- ***************************************************************
 --
 -- Copyright 2016 by Sean Conner.  All Rights Reserved.
--- 
+--
 -- This library is free software; you can redistribute it and/or modify it
 -- under the terms of the GNU Lesser General Public License as published by
 -- the Free Software Foundation; either version 3 of the License, or (at your
 -- option) any later version.
--- 
+--
 -- This library is distributed in the hope that it will be useful, but
 -- WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 -- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 -- License for more details.
--- 
+--
 -- You should have received a copy of the GNU Lesser General Public License
 -- along with this library; if not, see <http://www.gnu.org/licenses/>.
 --
 -- Comments, questions and criticisms can be sent to: sean@conman.org
 --
 -- luacheck: globals cbor
+-- luacheck: ignore 611
 -- ***************************************************************
 
 local cbor  = require "org.conman.cbor_s"
@@ -153,34 +154,34 @@ test('NINT',"3863",-100)
 test('NINT',"3903E7",-1000)
 test('half',"F93E00",1.5)
 test('single',"fa7f7fffff",3.4028234663852886e+38,
-	function()
-	  return cbor.encode(3.40282346638528859811704183484516925440e+38)
-	end)
+        function()
+          return cbor.encode(3.40282346638528859811704183484516925440e+38)
+        end)
 test('double',"fb7e37e43c8800759c",1.0e+300,
-	function()
-	  return cbor.encode(1.0e+300)
-	end)
+        function()
+          return cbor.encode(1.0e+300)
+        end)
 test('half',"f90001",5.960464477539063e-8)
 test('half',"f90400",0.00006103515625)
 test('double',"fbc010666666666666",-4.1)
 test('half',"f97c00",math.huge)
-test('half',"f9fe00",0/0) -- can't code a positive NaN here 
+test('half',"f9fe00",0/0) -- can't code a positive NaN here
 test('half',"f9fc00",-math.huge)
 test('false',"F4",false)
 test('true',"F5",true)
 test('null',"F6",nil)
 
 test('UINT',"c11a514b67b0",1363896240,
-	function() return cbor.encode(1363896240,1) end)
+        function() return cbor.encode(1363896240,1) end)
 test('double',"c1fb41d452d9ec200000",1363896240.5,
-	function() return cbor.encode(1363896240.5,1) end)
-test('BIN',"d74401020304","\1\2\3\4", 	-- RFC wrong here
-	function() return cbor.encode("\1\2\3\4",23) end)
+        function() return cbor.encode(1363896240.5,1) end)
+test('BIN',"d74401020304","\1\2\3\4",   -- RFC wrong here
+        function() return cbor.encode("\1\2\3\4",23) end)
 test('TEXT',"d818656449455446","dIETF", -- modified slightly from RFC
-	function() return cbor.encode(cbor.encode("IETF"),24) end)
+        function() return cbor.encode(cbor.encode("IETF"),24) end)
 test('TEXT',"d82076687474703a2f2f7777772e6578616d706c652e636f6d",
-	"http://www.example.com",
-	function() return cbor.encode("http://www.example.com",32) end)
+        "http://www.example.com",
+        function() return cbor.encode("http://www.example.com",32) end)
 test('BIN',"4401020304","\1\2\3\4")
 test('TEXT',"60","")
 test('TEXT',"6161","a")
@@ -192,7 +193,7 @@ test('TEXT',"64f0908591","\240\144\133\145")
 test('ARRAY',"83010203",{1,2,3})
 test('ARRAY',"8301820203820405",{ 1 , { 2 , 3 } , { 4 , 5 }})
 test('ARRAY',"98190102030405060708090a0b0c0d0e0f101112131415161718181819",
-	{ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25 })
+        { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25 })
 rtst('MAP',{ a = 1 , b = { 2 , 3 }} )
 test('ARRAY',"826161a161626163",{ "a" , { b = "c" }})
 rtst('MAP',{ a = "A" , b = 'B' , c = 'C' , d = "D" , e = [[E]] })

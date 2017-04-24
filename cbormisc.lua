@@ -1,17 +1,17 @@
 -- ***************************************************************
 --
 -- Copyright 2016 by Sean Conner.  All Rights Reserved.
--- 
+--
 -- This library is free software; you can redistribute it and/or modify it
 -- under the terms of the GNU Lesser General Public License as published by
 -- the Free Software Foundation; either version 3 of the License, or (at your
 -- option) any later version.
--- 
+--
 -- This library is distributed in the hope that it will be useful, but
 -- WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 -- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 -- License for more details.
--- 
+--
 -- You should have received a copy of the GNU Lesser General Public License
 -- along with this library; if not, see <http://www.gnu.org/licenses/>.
 --
@@ -22,6 +22,7 @@
 -- Output in the CBOR dianostic format
 --
 -- luacheck: globals _ENV TYPE TAG SIMPLE diagnostic pdiagnostic
+-- luacheck: ignore 611
 -- ***************************************************************
 
 local safestring = require "org.conman.table".safestring
@@ -128,7 +129,7 @@ TYPE =
   
   [0xE0] = function(_,pos,info,value)
     if info >= 25 and info <= 27 then
-      return '__float',SIMPLE[info](value),pos      
+      return '__float',SIMPLE[info](value),pos
     elseif info == 31 then
       return '__break',math.huge,pos
     else

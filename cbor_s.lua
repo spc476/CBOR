@@ -1,17 +1,17 @@
 -- ***************************************************************
 --
 -- Copyright 2016 by Sean Conner.  All Rights Reserved.
--- 
+--
 -- This library is free software; you can redistribute it and/or modify it
 -- under the terms of the GNU Lesser General Public License as published by
 -- the Free Software Foundation; either version 3 of the License, or (at your
 -- option) any later version.
--- 
+--
 -- This library is distributed in the hope that it will be useful, but
 -- WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 -- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 -- License for more details.
--- 
+--
 -- You should have received a copy of the GNU Lesser General Public License
 -- along with this library; if not, see <http://www.gnu.org/licenses/>.
 --
@@ -22,6 +22,7 @@
 -- A simpler CBOR encoding/decoding module
 --
 -- luacheck: globals _ENV _VERSION decode encode pdecode pencode
+-- luacheck: ignore 611
 -- ***************************************************************
 
 local math   = require "math"
@@ -38,9 +39,9 @@ local type         = type
 local pcall        = pcall
 
 if LUA_VERSION < "Lua 5.3" then
-  function math.type(n)    
-    return n >= -9007199254740992 
-       and n <=  9007199254740992 
+  function math.type(n)
+    return n >= -9007199254740992
+       and n <=  9007199254740992
        and n % 1 == 0
        and 'integer'
        or  'float'
@@ -71,19 +72,19 @@ local UTF8 = (
                + lpeg.P("\240")     * lpeg.R("\144\191") * lpeg.R("\128\191") * lpeg.R("\128\191")
                + lpeg.R("\241\243") * lpeg.R("\128\191") * lpeg.R("\128\191") * lpeg.R("\128\191")
                + lpeg.P("\224")     * lpeg.R("\128\142") * lpeg.R("\128\191") * lpeg.R("\128\191")
-	     )^0
-
+             )^0
+             
 -- ***********************************************************************
--- usage:	value2,pos2,ctype2 = bintext(packet,pos,info,value,ctype)
--- desc:	Decode a CBOR BIN or CBOR TEXT into a Lua string
--- input:	packet (binary) binary blob
---		pos (integer) byte position in packet
---		info (integer) CBOR info value (0..31)
---		value (integer) string length
---		ctype (enum/cbor) 'BIN' or 'TEXT'
--- return:	value2 (string) string from packet
---		pos2 (integer) position past string just extracted
---		ctype2 (enum/cbor) 'BIN' or 'TEXT'
+-- usage:       value2,pos2,ctype2 = bintext(packet,pos,info,value,ctype)
+-- desc:        Decode a CBOR BIN or CBOR TEXT into a Lua string
+-- input:       packet (binary) binary blob
+--              pos (integer) byte position in packet
+--              info (integer) CBOR info value (0..31)
+--              value (integer) string length
+--              ctype (enum/cbor) 'BIN' or 'TEXT'
+-- return:      value2 (string) string from packet
+--              pos2 (integer) position past string just extracted
+--              ctype2 (enum/cbor) 'BIN' or 'TEXT'
 -- ***********************************************************************
 
 local function bintext(packet,pos,info,value,ctype)
@@ -91,7 +92,7 @@ local function bintext(packet,pos,info,value,ctype)
     local res = ""
     while true do
       local nvalue,npos,ntype = decode(packet,pos)
-      if ntype == '__break' then 
+      if ntype == '__break' then
         return res,npos,ctype
       end
       res = res .. nvalue
@@ -109,16 +110,16 @@ end
 --
 -- Dencoding of CBOR simple types are here.
 --
--- Usage:	value2,pos,ctype = cbor.SIMPLE[n](pos,value)
--- Desc:	Decode a CBOR simple type
--- Input:	pos (integer) byte offset in packet
---		value (number/optional) floating point number
--- Return:	value2 (any) decoded value as Lua value
---		pos (integer) original pos passed in (see notes)
---		ctype (enum/cbor) CBOR type of value
+-- Usage:       value2,pos,ctype = cbor.SIMPLE[n](pos,value)
+-- Desc:        Decode a CBOR simple type
+-- Input:       pos (integer) byte offset in packet
+--              value (number/optional) floating point number
+-- Return:      value2 (any) decoded value as Lua value
+--              pos (integer) original pos passed in (see notes)
+--              ctype (enum/cbor) CBOR type of value
 --
--- Note:	The pos parameter is passed in to avoid special cases in
---		the code and to conform to all other decoding routines.
+-- Note:        The pos parameter is passed in to avoid special cases in
+--              the code and to conform to all other decoding routines.
 --
 -- ***********************************************************************
 
@@ -146,20 +147,20 @@ local SIMPLE = setmetatable(
 --
 -- Dencoding functions for CBOR base types are here.
 --
--- Usage:	value2,pos2,ctype = cbor.TYPE[n](packet,pos,info,value,conv)
--- Desc:	Decode a CBOR base type
--- Input:	packet (binary) binary blob of CBOR data
---		pos (integer) byte offset in packet to start parsing from
---		info (integer) CBOR info (0 .. 31)
---		value (integer) CBOR decoded value
---		conv (table) conversion table (passed to decode())
--- Return:	value2 (any) decoded CBOR value
---		pos2 (integer) byte offset just past parsed data
---		ctype (enum/cbor) CBOR deocded type
+-- Usage:       value2,pos2,ctype = cbor.TYPE[n](packet,pos,info,value,conv)
+-- Desc:        Decode a CBOR base type
+-- Input:       packet (binary) binary blob of CBOR data
+--              pos (integer) byte offset in packet to start parsing from
+--              info (integer) CBOR info (0 .. 31)
+--              value (integer) CBOR decoded value
+--              conv (table) conversion table (passed to decode())
+-- Return:      value2 (any) decoded CBOR value
+--              pos2 (integer) byte offset just past parsed data
+--              ctype (enum/cbor) CBOR deocded type
 --
--- Note:	simple is returned for any non-supported SIMPLE types. 
---		Supported simple types will return the appropriate type
---		name.
+-- Note:        simple is returned for any non-supported SIMPLE types.
+--              Supported simple types will return the appropriate type
+--              name.
 --
 -- ***********************************************************************
 
@@ -218,26 +219,26 @@ local TYPE =
 }
 
 -- ***************************************************************
--- Usage:	value,pos2,ctype = cbor.decode(packet[,pos][,conv])
--- Desc:	Decode CBOR encoded data
--- Input:	packet (binary) CBOR binary blob
---		pos (integer/optional) starting point for decoding
---		conv (table/optional) table of tagged conversion routines
--- Return:	value (any) the decoded CBOR data
---		pos2 (integer) offset past decoded data
---		ctype (enum/cbor) CBOR type of value
+-- Usage:       value,pos2,ctype = cbor.decode(packet[,pos][,conv])
+-- Desc:        Decode CBOR encoded data
+-- Input:       packet (binary) CBOR binary blob
+--              pos (integer/optional) starting point for decoding
+--              conv (table/optional) table of tagged conversion routines
+-- Return:      value (any) the decoded CBOR data
+--              pos2 (integer) offset past decoded data
+--              ctype (enum/cbor) CBOR type of value
 --
--- Note:	The conversion table should be constructed as:
+-- Note:        The conversion table should be constructed as:
 --
---		{
---		  [ 0] = function(v) return munge(v) end,
---		  [32] = function(v) return munge(v) end,,
---		}
+--              {
+--                [ 0] = function(v) return munge(v) end,
+--                [32] = function(v) return munge(v) end,,
+--              }
 --
---		The keys are CBOR types (as integers).  These functions are
---		expected to convert the decoded CBOR type into a more
---		appropriate type for your code.  For instance, [1] (epoch)
---		can be converted into a table.
+--              The keys are CBOR types (as integers).  These functions are
+--              expected to convert the decoded CBOR type into a more
+--              appropriate type for your code.  For instance, [1] (epoch)
+--              can be converted into a table.
 --
 -- ***********************************************************************
 
@@ -248,15 +249,15 @@ function decode(packet,pos,conv)
 end
 
 -- ***************************************************************
--- Usage:	value,pos2,ctype[,err] = cbor.pdecode(packet[,pos][,conv])
--- Desc:	Protected call to decode CBOR data
--- Input:	packet (binary) CBOR binary blob
---		pos (integer/optional) starting point for decoding
---		conv (table/optional) table of tagged conversion routines
--- Return:	value (any) the decoded CBOR data, nil on error
---		pos2 (integer) offset past decoded data, 0 on error
---		ctype (enum/cbor) CBOR type of value
---		err (string/optional) error message, if any
+-- Usage:       value,pos2,ctype[,err] = cbor.pdecode(packet[,pos][,conv])
+-- Desc:        Protected call to decode CBOR data
+-- Input:       packet (binary) CBOR binary blob
+--              pos (integer/optional) starting point for decoding
+--              conv (table/optional) table of tagged conversion routines
+-- Return:      value (any) the decoded CBOR data, nil on error
+--              pos2 (integer) offset past decoded data, 0 on error
+--              ctype (enum/cbor) CBOR type of value
+--              err (string/optional) error message, if any
 -- ***********************************************************************
 
 function pdecode(packet,pos,conv)
@@ -283,17 +284,17 @@ end
 --
 -- Other Lua types are not supported.
 --
--- Usage:	blob = cbor.__ENCODE_MAP[luatype](value[,tag])
--- Desc:	Encode a Lua type into a CBOR type
--- Input:	value (any) a Lua value who's type matches luatype.
---		tag (number/optional) CBOR tag type
--- Return:	blob (binary) CBOR encoded data
+-- Usage:       blob = cbor.__ENCODE_MAP[luatype](value[,tag])
+-- Desc:        Encode a Lua type into a CBOR type
+-- Input:       value (any) a Lua value who's type matches luatype.
+--              tag (number/optional) CBOR tag type
+-- Return:      blob (binary) CBOR encoded data
 --
 -- ***********************************************************************
 
 local ENCODE_MAP =
 {
-  
+
   ['nil'] = function()
     return "\246"
   end,
@@ -350,7 +351,7 @@ local ENCODE_MAP =
       end
     end
   end,
-    
+  
   ['function'] = function()
     error("function not supported")
   end,
@@ -365,11 +366,11 @@ local ENCODE_MAP =
 }
 
 -- ***************************************************************
--- Usage:	blob = cbor.encode(value[,tag])
--- Desc:	Encode a Lua type into a CBOR type
--- Input:	value (any)
---		tag (number/optional) CBOR tag value
--- Return:	blob (binary) CBOR encoded value
+-- Usage:       blob = cbor.encode(value[,tag])
+-- Desc:        Encode a Lua type into a CBOR type
+-- Input:       value (any)
+--              tag (number/optional) CBOR tag value
+-- Return:      blob (binary) CBOR encoded value
 -- ***********************************************************************
 
 function encode(value,tag)
@@ -381,12 +382,12 @@ function encode(value,tag)
 end
 
 -- ***************************************************************
--- Usage:	blob[,err] = cbor_s.pencode(value[,tag])
--- Desc:	Protected call to encode into CBOR
--- Input:	value (any)
---		tag (number/optional) CBOR tag value
--- Return:	blob (binary) CBOR encoded value
---		err (string/optional) error message
+-- Usage:       blob[,err] = cbor_s.pencode(value[,tag])
+-- Desc:        Protected call to encode into CBOR
+-- Input:       value (any)
+--              tag (number/optional) CBOR tag value
+-- Return:      blob (binary) CBOR encoded value
+--              err (string/optional) error message
 -- ***************************************************************
 
 function pencode(value,tag)
