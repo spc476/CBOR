@@ -97,7 +97,7 @@ local table    = require "table"
 local lpeg     = require "lpeg"
 local cbor_c   = require "org.conman.cbor_c"
 
-local LUA_VERSION = _VERSION
+local LUA_VERSION  = _VERSION
 local error        = error
 local pcall        = pcall
 local assert       = assert
