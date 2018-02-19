@@ -1,5 +1,5 @@
 package = "org.conman.cbor"
-version = "1.2.6-1"
+version = "1.2.7-1"
 
 source =
 {
@@ -53,7 +53,7 @@ build =
   type = "make",
   build_variables =
   {
-    CC      = "$(CC)"
+    CC      = "$(CC)",
     CFLAGS  = "$(CFLAGS) -DNDEBUG -I$(LUA_INCDIR)",
     LDFLAGS = "$(LIBFLAG)",
     LUA     = "$(LUA)",
