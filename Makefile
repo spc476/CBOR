@@ -19,12 +19,16 @@
 #
 ########################################################################
 
-.PHONY:	clean check
-
 UNAME   := $(shell uname)
 VERSION := $(shell git describe --tag)
 
-CC      = c99 -Wall -Wextra -pedantic
+ifeq ($(VERSION),)
+  VERSION=1.2.5
+endif
+
+# ===================================================
+
+CC      = gcc -std=c99 -Wall -Wextra -pedantic
 CFLAGS  = -g -fPIC
 
 ifeq ($(UNAME),Linux)
@@ -53,14 +57,16 @@ LUA_VERSION := $(shell $(LUA) -e "io.stdout:write(_VERSION:match '^Lua (.*)','\n
 LIBDIR      ?= $(libdir)/lua/$(LUA_VERSION)
 LUADIR      ?= $(dataroot)/lua/$(LUA_VERSION)
 
-ifeq ($(VERSION),)
-  VERSION=1.2.4
+ifneq ($(LUA_INCDIR),)
+  override CFLAGS += -I$(LUA_INCDIR)
 endif
 
 # ===================================================
 
 %.so :
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+.PHONY:	install uninstall clean check
 
 cbor_c.so : cbor_c.o dnf.o
 cbor_c.o  : dnf.h
@@ -76,7 +82,7 @@ install: cbor_c.so
 	$(INSTALL_DATA)    cbor_s.lua   $(DESTDIR)$(LUADIR)/org/conman/cbor_s.lua
 	$(INSTALL_DATA)    cbormisc.lua $(DESTDIR)$(LUADIR)/org/conman/cbormisc.lua
 
-remove:
+uninstall:
 	$(RM) $(DESTDIR)$(LIBDIR)/org/conman/cbor_c.so
 	$(RM) $(DESTDIR)$(LUADIR)/org/conman/cbor.lua
 	$(RM) $(DESTDIR)$(LUADIR)/org/conman/cbor_s.lua

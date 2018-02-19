@@ -1,5 +1,5 @@
 package = "org.conman.cbor"
-version = "1.2.4-1"
+version = "1.2.5-1"
 
 source =
 {
@@ -56,10 +56,12 @@ build =
     CC      = "c99",
     CFLAGS  = "$(CFLAGS) -DNDEBUG -I$(LUA_INCDIR)",
     LDFLAGS = "$(LIBFLAG)",
+    LUA     = "$(LUA)",
   },
   install_variables =
   {
     LIBDIR = "$(LIBDIR)",
     LUADIR = "$(LUADIR)",
+    LUA    = "$(LUA)",
   }
 }
