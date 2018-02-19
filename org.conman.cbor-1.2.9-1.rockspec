@@ -49,19 +49,26 @@ build =
       }
     }
   },
-
+  
   type = "make",
   build_variables =
   {
-    CC      = "gcc -std=c99",
+    CC      = "$(CC)",
     CFLAGS  = "$(CFLAGS) -DNDEBUG -I$(LUA_INCDIR)",
     LDFLAGS = "$(LIBFLAG)",
     LUA     = "$(LUA)",
   },
+  
   install_variables =
   {
     LIBDIR = "$(LIBDIR)",
     LUADIR = "$(LUADIR)",
     LUA    = "$(LUA)",
+  },
+  
+  platforms =
+  {
+    linux   = { build_variables = { CC = "gcc -std=c99" } },
+    solaris = { build_varaibles = { CC = "c99"          } },
   }
 }
