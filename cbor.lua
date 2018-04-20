@@ -76,6 +76,7 @@
 --                      * _bigfloatexp  like _bigfloat, non-int exponent
 --                      * _indirection  Indirection
 --                      * _rains        RAINS message
+--                      * _ipaddress    IP address (or MAC address)
 --                      *** Lua CBOR library types
 --                      * __error       error parsing (TEXT)
 --              data (any) decoded CBOR data
@@ -1043,6 +1044,28 @@ TAG = setmetatable(
     [257] = function(packet,pos,conv,ref)
       local value,npos = decode(packet,pos,conv,ref)
       return value,npos,'_bmime'
+    end,
+    
+    -- =====================================================================
+    
+    _ipaddress = function(value,sref,stref)
+      assert(type(value) == 'string',"_ipaddress expects a string")
+      assert(#value == 4 or #value == 16 or #value == 6,"_ipaddress wrong length")
+      return cbor_c.encode(0xC0,260) .. TYPE.BIN(value,sref,stref)
+    end,
+    
+    [260] = function(packet,pos,conv,ref)
+      local value,npos,ctype = decode(packet,pos,conv,ref)
+      
+      if ctype ~= 'BIN' then
+        throw(pos,"_ipaddress: wanted BIN, got %s",ctype)
+      end
+      
+      if #value ~= 4 and #value ~= 16 and #value ~= 6 then
+        throw(pos,"_ipaddress: wrong size address: %d",#value)
+      end
+      
+      return value,npos,'_ipaddress'
     end,
     
     -- =====================================================================

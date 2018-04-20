@@ -622,7 +622,20 @@ test('_bigfloatexp',
 
 test('_indirection',"D95652820102" , { 1 , 2 },
         function() return cbor.TAG._indirection { 1 , 2 } end)
-        
+
+-- _ipaddress
+-- http://www.employees.org/~ravir/cbor-network.txt
+-- IPv6 encoding example wrong in spec
+
+test('_ipaddress','D9010444C00A0A01',"\192\10\10\1",
+	function() return cbor.TAG._ipaddress "\192\10\10\1" end)
+
+test('_ipaddress',"D90104460123456789AB","\01\35\69\103\137\171",
+	function() return cbor.TAG._ipaddress "\01\35\69\103\137\171" end)
+
+test('_ipaddress',"D901045020010db885a3000000008a2e03707334",hextobin("20010db885a3000000008a2e03707334"),
+	function() return cbor.TAG._ipaddress(hextobin("20010db885a3000000008a2e03707334")) end)
+
 -- ***********************************************************************
 -- And now, test *both* types of references in the same structure.  In order
 -- to ensure a consistent check, we use arrays only for this test.  The
