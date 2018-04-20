@@ -84,7 +84,7 @@ assert(compare({1,2,3},{1,2,3}))
 
 -- ***********************************************************************
 
-local function test(ctype,hbinary,src,srcf,destf)
+local function testx(ctype,hbinary,src,srcf,destf)
   local bin = hextobin(hbinary)
   local encoded
   
@@ -112,8 +112,19 @@ local function test(ctype,hbinary,src,srcf,destf)
     assertf(compare(src,decoded),"decoding for %s is different",ctype)
   end
   
-  io.stdout:write("GO\n")
+  io.stdout:write(" GO\n")
   return true
+end
+
+function test(...)
+  local okay,ret = pcall(testx,...)
+  if okay then return ret end
+  if type(ret) == 'string' then
+    print(string.format(" FAILED %s",ret))
+  else
+    print(string.format(" FAILED %s",ret.msg))
+  end
+  os.exit(1)
 end
 
 -- ***********************************************************************
