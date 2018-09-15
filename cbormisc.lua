@@ -36,9 +36,9 @@ local tostring     = tostring
 local pcall        = pcall
 
 if _VERSION == "Lua 5.1" then
-  module "org.conman.cbormisc"
+  module "org.conman.cbormisc" -- luacheck: ignore
 else
-  _ENV = {}
+  _ENV = {} -- luacheck: ignore
 end
 
 -- ***************************************************************

@@ -120,9 +120,9 @@ if LUA_VERSION < "Lua 5.3" then
 end
 
 if LUA_VERSION == "Lua 5.1" then
-  module "org.conman.cbor"
+  module "org.conman.cbor" -- luacheck: ignore
 else
-  _ENV = {}
+  _ENV = {} -- luacheck: ignore
 end
 
 _VERSION = cbor_c._VERSION

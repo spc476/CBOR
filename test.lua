@@ -17,7 +17,7 @@
 --
 -- Comments, questions and criticisms can be sent to: sean@conman.org
 --
--- luacheck: globals cbor cbor_c
+-- luacheck: globals cbor cbor_c test
 -- luacheck: ignore 611
 -- ***************************************************************
 
