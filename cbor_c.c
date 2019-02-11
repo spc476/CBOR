@@ -341,7 +341,7 @@ static int cbor_clua_decode(lua_State *L)
 {
   size_t                  packlen;
   const char             *packet = luaL_checklstring(L,1,&packlen);
-  size_t                  pos    = luaL_checkinteger(L,2) - 1;
+  size_t                  pos    = luaL_checkinteger(L,2);
   int                     type;
   int                     info;
   unsigned long long int  value;
@@ -353,6 +353,7 @@ static int cbor_clua_decode(lua_State *L)
   if (pos > packlen)
     return luaL_error(L,"no input");
   
+  pos--;
   lua_pushinteger(L,type = packet[pos] & 0xE0);
   lua_pushinteger(L,info = packet[pos] & 0x1F);
   

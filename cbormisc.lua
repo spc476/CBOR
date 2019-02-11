@@ -25,10 +25,9 @@
 -- luacheck: ignore 611
 -- ***************************************************************
 
-local safestring = require "org.conman.table".safestring
-local string     = require "string"
-local math       = require "math"
-local cbor_c     = require "org.conman.cbor_c"
+local string = require "string"
+local math   = require "math"
+local cbor_c = require "org.conman.cbor_c"
 
 local _VERSION     = _VERSION
 local setmetatable = setmetatable
@@ -42,6 +41,41 @@ else
 end
 
 -- ***************************************************************
+
+local char_trans =
+{
+  ['\a'] = '\\a',
+  ['\b'] = '\\b',
+  ['\t'] = '\\t',
+  ['\n'] = '\\n',
+  ['\v'] = '\\v',
+  ['\f'] = '\\f',
+  ['\r'] = '\\r',
+  ['"']  = '\\"',
+  ['\\'] = '\\\\',
+}
+
+local function safestring(v)
+  if type(v) == 'string' then
+    return '"' .. v:gsub(".",function(c)
+      if char_trans[c] then
+        return char_trans[c]
+      end
+      
+      local b = c:byte()
+      
+      if b < 32 or b > 126 then
+        return string.format("\\%03d",b)
+      else
+        return c
+      end
+    end) .. '"'
+  else
+    return tostring(v)
+  end
+end
+
+-- *************************************************************
 
 local function bintext(packet,pos,info,value,ctype,f)
   if info == 31 then
