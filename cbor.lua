@@ -127,6 +127,46 @@ end
 
 _VERSION = cbor_c._VERSION
 
+-- **********************************************************************
+-- usage: is_array = table_is_array(table_value)
+-- desc:        Check if table should be encoded as MAP or as ARRAY
+-- input:       table_value (table) table to analyze
+-- return:      is_array (bool) is the table looks like ARRAY or MAP
+-- ***********************************************************************
+
+local function table_is_array(t)
+    local is_array = true
+    local is_empty = true
+    for i,_ in pairs(t) do
+        is_empty = false
+        if type(i) ~= "number" or i <= 0 or i % 1 ~= 0 then
+            is_array = false
+            break
+        end
+    end
+    if is_empty then
+        is_array = false
+    end
+    return is_array
+end
+
+-- **********************************************************************
+-- usage: max_array_index = table_maxn(table_value)
+-- desc:        Search for max ARRAY index similar to table.maxn
+-- input:       table_value (table) table to analyze
+-- return:      max_array_index (integer) index to iterate ARRAY to
+-- ***********************************************************************
+
+local function table_maxn(t)
+    local maxn = 0
+    for i,_ in pairs(t) do
+        if type(i) == "number" and i > 0 and i % 1 == 0 and i > maxn then
+            maxn = i
+        end
+    end
+    return maxn
+end
+
 -- ***********************************************************************
 -- UTF-8 defintion from RFC-3629.  There's a deviation from the RFC
 -- specification in that I only allow certain codes from the US-ASCII C0
@@ -421,9 +461,10 @@ TYPE =
       sref[array] = #sref - 1
     end
     
-    res = res .. cbor_c.encode(0x80,#array)
-    for _,item in ipairs(array) do
-      res = res .. encode(item,sref,stref)
+    local maxn = table_maxn(array)
+    res = res .. cbor_c.encode(0x80,maxn)
+    for i=1,maxn do
+      res = res .. encode(array[i],sref,stref)
     end
     return res
   end,
@@ -1328,7 +1369,7 @@ local function generic(value,sref,stref)
   local mt = getmetatable(value)
   if not mt then
     if type(value) == 'table' then
-      if #value > 0 then
+      if table_is_array(value) then
         return TYPE.ARRAY(value,sref,stref)
       else
         return TYPE.MAP(value,sref,stref)

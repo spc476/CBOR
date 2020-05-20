@@ -228,6 +228,9 @@ test('ARRAY',"83010203",{1,2,3})
 test('ARRAY',"8301820203820405",{ 1 , { 2 , 3 } , { 4 , 5 }})
 test('ARRAY',"98190102030405060708090a0b0c0d0e0f101112131415161718181819",
         { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25 })
+test('ARRAY', "8301f618ff", {1,nil,255})
+test('ARRAY', "8301f618ff", {1,nil,255}, function() local t={1}; t[3]=255; return cbor.encode(t) end)
+test('ARRAY', "83f60118ff", {nil,1,255}, function() local t={}; t[2] = 1; t[3]=255; return cbor.encode(t) end)   -- table length is invalid for table with nil values
 test('MAP',"A0",{})
 test('MAP',"a201020304",{ [1] = 2 , [3] = 4},
         function()
@@ -256,6 +259,7 @@ test('MAP',"a56161614161626142616361436164614461656145",
         end
         )
 rtst('MAP',{ a = "A" , b = 'B' , c = 'C' , d = "D" , e = [[E]] })
+rtst('MAP', { x = "X", [3] = 30, [2] = 20 }, function() local t={nil,20}; t["x"]="X"; t[3]=30; return cbor.encode(t) end)
 test('BIN',"5f42010243030405ff","\1\2\3\4\5",
         function()
           return cbor_c.encode(0x40)

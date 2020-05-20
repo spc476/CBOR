@@ -56,6 +56,34 @@ end
 
 _VERSION = cbor_c._VERSION
 
+-- **********************************************************************
+-- usage: is_array, max_array_index, map_keys = table_info(table_value)
+-- desc:        Check type (MAP, ARRAY) and length info for tables 
+-- input:       table_value (table) table to analyze
+-- return:      is_array (bool) is the table looks like ARRAY or MAP
+--              max_array_index (integer) index to iterate ARRAY to
+--              map_keys (integer) number of keys in MAP
+-- ***********************************************************************
+
+local function table_info(t)
+    local max_array_index = 0
+    local map_keys = 0
+    local is_array = true
+    for i,_ in pairs(t) do
+        map_keys = map_keys + 1
+        if type(i) == "number" and i > 0 and i % 1 == 0 then
+            if i > max_array_index then max_array_index = i end
+        else
+            is_array = false
+        end
+    end
+    -- historically we convert empty table to MAP
+    if map_keys == 0 then
+        is_array = false
+    end
+    return is_array, max_array_index, map_keys
+end
+
 -- ***************************************************************
 -- UTF-8 defintion from RFC-3629.  There's a deviation from the RFC
 -- specification in that I only allow certain codes from the US-ASCII C0
@@ -184,10 +212,10 @@ local TYPE =
   
   [0x80] = function(packet,pos,_,value,conv)
     local array = {}
-    for _ = 1 , value do
+    for i = 1 , value do
       local val,npos,ctype = decode(packet,pos,conv)
       if ctype == '__break' then break end
-      table.insert(array,val)
+      array[i] = val
       pos = npos
     end
     return array,pos,'ARRAY'
@@ -332,22 +360,19 @@ local ENCODE_MAP =
     if mt and mt.__tocbor then
       return mt.__tocbor(value)
     else
-      if #value > 0 then
-        local res = cbor_c.encode(0x80,#value)
-        for _,item in ipairs(value) do
-          res = res .. encode(item)
+      local is_array, max_array_index, map_keys = table_info(value)
+      if is_array then
+        local res = cbor_c.encode(0x80,max_array_index)
+        for i=1,max_array_index do
+          res = res .. encode(value[i])
         end
         return res
       else
-        local res = ""
-        local cnt = 0
-        
+        local res = cbor_c.encode(0xA0,map_keys)
         for key,item in pairs(value) do
-          res = res .. encode(key)
-          res = res .. encode(item)
-          cnt = cnt + 1
+          res = res .. encode(key) .. encode(item)
         end
-        return cbor_c.encode(0xA0,cnt) .. res
+        return res
       end
     end
   end,
