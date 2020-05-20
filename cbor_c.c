@@ -458,6 +458,10 @@ int luaopen_org_conman_cbor_c(lua_State *L)
   luaL_newlib(L,cbor_c_reg);
 #endif
   
+  /* pseudo-null cjson compatible value*/
+  lua_pushlightuserdata(L, NULL);
+  lua_setfield(L,-2,"null");
+
   lua_pushliteral(L,VERSION);
   lua_setfield(L,-2,"_VERSION");
   

@@ -87,7 +87,7 @@
 --              The __break type is used to indicate the end of an
 --              indefinite array or map.
 --
--- luacheck: globals isnumber isinteger isfloat decode encode pdecode pencode
+-- luacheck: globals isnumber isinteger isfloat decode encode pdecode pencode null safe_null_decode
 -- luacheck: globals TYPE TAG SIMPLE _VERSION __ENCODE_MAP _ENV
 -- luacheck: ignore 611
 -- ********************************************************************
@@ -126,6 +126,33 @@ else
 end
 
 _VERSION = cbor_c._VERSION
+
+-- ***********************************************************************
+-- Usage:       cbor.null
+-- Desc:        Pseudo-null-value
+-- Note:        Lua can't create array-like table with nil values at
+--              the end, but such structures can be required to deal with
+--              external systems. This value can be used in any structures
+--              as nil-value replacement to solve this problem. Also
+--              cbor.null == cjson.null, so this helps to make these
+--              modules more compatible.
+-- ***********************************************************************
+
+null = cbor_c.null
+
+-- ***********************************************************************
+-- Usage:       cbor.safe_null_decode(enable)
+-- Desc:        When enabled, decode methods unpack "null" values as
+--              cbor.null instead of lua nil. See also 'cbor.null'.
+-- Input:       enable(bool)
+-- Note:        When enabled, allows to decode ARRAYs with trailing nulls,
+--              which is not possible with native lua nils.
+-- ***********************************************************************
+
+local null_symbol = nil
+function safe_null_decode(enable)
+    null_symbol = enable and null or nil
+end
 
 -- ***********************************************************************
 -- UTF-8 defintion from RFC-3629.  There's a deviation from the RFC
@@ -1208,7 +1235,7 @@ SIMPLE = setmetatable(
   {
     [20] = function(pos)       return false,pos,'false'     end,
     [21] = function(pos)       return true ,pos,'true'      end,
-    [22] = function(pos)       return nil  ,pos,'null'      end,
+    [22] = function(pos)       return null_symbol,pos,'null'      end,
     [23] = function(pos)       return nil  ,pos,'undefined' end,
     [25] = function(pos,value) return value,pos,'half'      end,
     [26] = function(pos,value) return value,pos,'single'    end,
@@ -1333,6 +1360,8 @@ local function generic(value,sref,stref)
       else
         return TYPE.MAP(value,sref,stref)
       end
+    elseif type(value) == 'userdata' and value == null then
+      return SIMPLE.null()
     else
       error(string.format("Cannot encode %s",type(value)))
     end
