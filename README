@@ -180,10 +180,33 @@ significantly.
 And yes, you can request both shared references and string references in the
 same call.  
 
+The CBOR values null and undefined map to Lua nil, and all the baggage that
+comes with that.  If you really need to track null and/or undefined values,
+you can define the following with a unique value:
+
+	cbor.null
+	cbor.undefined
+
+And the value of those two fields will be checked for when encoding and the
+appropriate CBOR value used.  Also, when decoding, the those values will be
+used when the CBOR null and undefined values are decoded.  The safest value
+to use is an empty table for each one:
+
+	cbor.null      = {}
+	cbor.undefined = {}
+
+That will ensure both have a unique value.
+
 If the 'org.conman.cbor' module is too heavy for your application, you can
 try the 'org.conman.cbor_s' module.  It's similar to the full blown
 'org.conman.cbor' module, but without the full support of the various tagged
-data items.  Our original example is the same:
+data items.  And it too, supports custom null and undefined values---just
+set
+
+	cbor_s.null
+	cbor_s.undefined
+
+Our original example is the same:
 
 	cbor_s = require "org.conman.cbor_s"
 
