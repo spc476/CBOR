@@ -285,6 +285,28 @@ constrained devices.
 
 **************************************************************************
 *
+*                                  CAVEATS
+*
+**************************************************************************
+
+Encoding a mixed Lua table (e.g.  { 1 , 2 , 3 , foo = 1 , bar = 2 }) may not
+encode as expected.  For best results, ensure that all Lua tables are either
+pure sequences (arrays, e.g. { 1 , 2 , 3 , 4 }) or are non-sequential in
+nature.
+
+NOTE:  The following array is problematic:
+
+	{ foo = 1 , bar = 2 , [1] = 1 }
+
+because it is both a Lua sequence and contains non-sequence indecies, and
+will thus be encoded as an ARRAY.  The following array:
+
+	{ foo = 1 , bar = 2 , [100] = 1 }
+
+is NOT considered a sequence and will be encoded as a MAP.
+
+**************************************************************************
+*
 *                         QUICK FUNCTION REFERENCE
 *
 * See http://cbor.io/spec.html for more information on CBOR
