@@ -1345,7 +1345,7 @@ local function generic(value,sref,stref)
   elseif mt.__len then
     return TYPE.ARRAY(value,sref,stref)
     
-  elseif LUA_VERSION >= "Lua 5.2" and mt.__ipairs then
+  elseif LUA_VERSION == "Lua 5.2" and mt.__ipairs then
     return TYPE.ARRAY(value,sref,stref)
     
   elseif LUA_VERSION >= "Lua 5.3" and mt.__pairs then
