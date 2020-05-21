@@ -89,6 +89,7 @@
 --
 -- luacheck: globals isnumber isinteger isfloat decode encode pdecode pencode
 -- luacheck: globals TYPE TAG SIMPLE _VERSION __ENCODE_MAP _ENV
+-- luacheck: globals null undefined
 -- luacheck: ignore 611
 -- ********************************************************************
 
@@ -1206,14 +1207,14 @@ TAG = setmetatable(
 
 SIMPLE = setmetatable(
   {
-    [20] = function(pos)       return false,pos,'false'     end,
-    [21] = function(pos)       return true ,pos,'true'      end,
-    [22] = function(pos)       return nil  ,pos,'null'      end,
-    [23] = function(pos)       return nil  ,pos,'undefined' end,
-    [25] = function(pos,value) return value,pos,'half'      end,
-    [26] = function(pos,value) return value,pos,'single'    end,
-    [27] = function(pos,value) return value,pos,'double'    end,
-    [31] = function(pos)       return false,pos,'__break'   end,
+    [20] = function(pos)       return false    ,pos,'false'     end,
+    [21] = function(pos)       return true     ,pos,'true'      end,
+    [22] = function(pos)       return null     ,pos,'null'      end,
+    [23] = function(pos)       return undefined,pos,'undefined' end,
+    [25] = function(pos,value) return value    ,pos,'half'      end,
+    [26] = function(pos,value) return value    ,pos,'single'    end,
+    [27] = function(pos,value) return value    ,pos,'double'    end,
+    [31] = function(pos)       return false    ,pos,'__break'   end,
     
     ['false'] = function()  return "\244" end,
     ['true']  = function()  return "\245" end,
@@ -1429,6 +1430,12 @@ __ENCODE_MAP =
 -- ***********************************************************************
 
 function encode(value,sref,stref)
+  if value == null then
+    return SIMPLE.null()
+  elseif value == undefined then
+    return SIMPLE.undefined()
+  end
+  
   local res = ""
   
   if stref and not stref.SEEN then

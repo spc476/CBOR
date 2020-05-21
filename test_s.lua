@@ -197,3 +197,18 @@ test('ARRAY',"98190102030405060708090a0b0c0d0e0f101112131415161718181819",
 rtst('MAP',{ a = 1 , b = { 2 , 3 }} )
 test('ARRAY',"826161a161626163",{ "a" , { b = "c" }})
 rtst('MAP',{ a = "A" , b = 'B' , c = 'C' , d = "D" , e = [[E]] })
+
+-- *********************************************************************
+-- Test for a custom null and undefined values.  By default, Lua treats
+-- null and undefined as nil when decoding, and any nil value becomes null
+-- when encoding.  If you want special sentinel values, define cbor.null
+-- and cbor.undefined to some unique value.  NaN will break, because it is
+-- not equal even unto itself.  An empty table is good enough.
+-- *********************************************************************
+
+cbor.null      = {}
+cbor.undefined = {}
+
+test('null',"F6",cbor.null)
+test('undefined',"F7",cbor.undefined)
+test('ARRAY',"82F6F7",{ cbor.null , cbor.undefined })

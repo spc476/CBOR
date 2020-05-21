@@ -696,3 +696,18 @@ local q =
 
 test('_rains',"DA00E99BA8A100818204A3056F7777772E636F6E6D616E2E6F72672E0D81612E0E83010203"
         ,q,function() return cbor.TAG._rains(q) end)
+
+-- *********************************************************************
+-- Test for a custom null and undefined values.  By default, Lua treats
+-- null and undefined as nil when decoding, and any nil value becomes null
+-- when encoding.  If you want special sentinel values, define cbor.null
+-- and cbor.undefined to some unique value.  NaN will break, because it is
+-- not equal even unto itself.  An empty table is good enough.
+-- *********************************************************************
+
+cbor.null      = {}
+cbor.undefined = {}
+
+test('null',"F6",cbor.null)
+test('undefined',"F7",cbor.undefined)
+test('ARRAY',"82F6F7",{ cbor.null , cbor.undefined })

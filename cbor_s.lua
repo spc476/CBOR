@@ -125,14 +125,14 @@ end
 
 local SIMPLE = setmetatable(
   {
-    [20] = function(pos)       return false,pos,'false'     end,
-    [21] = function(pos)       return true ,pos,'true'      end,
-    [22] = function(pos)       return nil  ,pos,'null'      end,
-    [23] = function(pos)       return nil  ,pos,'undefined' end,
-    [25] = function(pos,value) return value,pos,'half'      end,
-    [26] = function(pos,value) return value,pos,'single'    end,
-    [27] = function(pos,value) return value,pos,'double'    end,
-    [31] = function(pos)       return false,pos,'__break'   end,
+    [20] = function(pos)       return false    ,pos,'false'     end,
+    [21] = function(pos)       return true     ,pos,'true'      end,
+    [22] = function(pos)       return null     ,pos,'null'      end,
+    [23] = function(pos)       return undefined,pos,'undefined' end,
+    [25] = function(pos,value) return value    ,pos,'half'      end,
+    [26] = function(pos,value) return value    ,pos,'single'    end,
+    [27] = function(pos,value) return value    ,pos,'double'    end,
+    [31] = function(pos)       return false    ,pos,'__break'   end,
   },
   {
     __index = function()
@@ -374,10 +374,20 @@ local ENCODE_MAP =
 -- ***********************************************************************
 
 function encode(value,tag)
+  local blob do
+    if value == null then
+      blob = "\246"
+    elseif value == undefined then
+      blob = "\247"
+    else
+      blob = ENCODE_MAP[type(value)](value)
+    end
+  end
+  
   if tag then
-    return cbor_c.encode(0xC0,tag) .. ENCODE_MAP[type(value)](value)
+    return cbor_c.encode(0xC0,tag) .. blob
   else
-    return ENCODE_MAP[type(value)](value)
+    return blob
   end
 end
 
