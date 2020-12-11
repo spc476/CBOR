@@ -3,7 +3,7 @@
 
 The major module in this collection is 'org.conman.cbor', the most
 comprehensive CBOR module in the Lua universe, as it supports everything
-mentioned in RFC-7049 and the extensions published by the IANA.  It's easy
+mentioned in RFC-8949 and the extensions published by the IANA.  It's easy
 to use, but also allows enough control to get exactly what you want when
 encoding to CBOR.  For example:
 
@@ -315,7 +315,7 @@ is NOT considered a sequence and will be encoded as a MAP.
 *
 *************************************************************
 
-Full blown CBOR support.  All of RFC-7049 as well as the currently defined
+Full blown CBOR support.  All of RFC-8949 as well as the currently defined
 IANA extensions are supported with this module.  This module also includes
 enhanced error detection and type checking.  As a result, it's quite a bit
 larger than the org.conman.cbor_s module.  This module also contains a large
@@ -705,7 +705,7 @@ This module provides the foundation of the CBOR modules and is written in C.
 This module deals with the lowest level details of encoding and decoding
 CBOR data.  It will encode data with the minimal encoding size [1].  This
 module provides just two functions, and it helps to be familiar with
-RFC-7049 to use this module properly.
+RFC-8949 to use this module properly.
 
 NOTE:  Both functions can throw an error.
 
