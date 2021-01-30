@@ -1,5 +1,5 @@
 package = "org.conman.cbor"
-version = "1.3.2-1"
+version = "1.3.3-1"
 
 source =
 {
@@ -11,7 +11,7 @@ description =
 {
   homepage   = "http://github.com/spc476/CBOR.git",
   maintainer = "Sean Conner <sean@conman.org>",
-  license    = "LGPL-3",
+  license    = "LGPL3+",
   summary    = "The most comprehensive CBOR module in the Lua universe.",
   detailed   = [[
 	A complete implementation of CBOR (Concise Binary Object
@@ -24,7 +24,7 @@ description =
 
 dependencies =
 {
-  "lua  >= 5.1, < 5.4",
+  "lua  >= 5.1, <= 5.4",
   "lpeg ~= 1.0",
 }
 
