@@ -1,9 +1,9 @@
 package = "org.conman.cbor"
-version = "1.3.3-1"
+version = "1.3.4-1"
 
 source =
 {
-  url = "git://github.com/spc476/CBOR.git",
+  url = "git+https://github.com/spc476/CBOR.git",
   tag = version:match "[^-]+"
 }
 
