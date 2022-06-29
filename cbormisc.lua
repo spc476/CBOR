@@ -33,6 +33,7 @@ local _VERSION     = _VERSION
 local setmetatable = setmetatable
 local tostring     = tostring
 local pcall        = pcall
+local type         = type
 
 if _VERSION == "Lua 5.1" then
   module "org.conman.cbormisc" -- luacheck: ignore
