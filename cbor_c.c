@@ -457,10 +457,12 @@ int luaopen_org_conman_cbor_c(lua_State *L)
 #else
   luaL_newlib(L,cbor_c_reg);
 #endif
-  
+
+#ifdef VERSION
   lua_pushliteral(L,VERSION);
   lua_setfield(L,-2,"_VERSION");
-  
+#endif
+
   return 1;
 }
 
